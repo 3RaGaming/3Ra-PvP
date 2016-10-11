@@ -1,6 +1,10 @@
 --Team PVP [Based on Roboport_PvP_Slow by Klonan]
 --A 3Ra Gaming revision
-	
+	if not scenario then scenario = {} end
+if not scenario.config then scenario.config = {} end
+--config and event must be called first.
+	require "locale/utils/event"
+	require "local/utils/undecorator"
 	require "server"
 	require "technologies"
 
@@ -198,16 +202,23 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 			end
 		end
 	end
+	if player.force == game.forces["Orange"] then
+		global.orange_count = global.orange_count + 1
+	end
+	if player.force == game.forces["Purple"] then
+		global.purple_count = global.purple_count + 1
+	end
 	show_update_score()
 	update_count()
  end)
 
 script.on_event(defines.events.on_player_left_game, function(event)
-	if game.player.force == game.forces["Orange"] then
-		online_count = orange_online - 1
+	player = game.players[event.player_index]
+	if player.force == game.forces["Orange"] then
+		global.orange_count = global.orange_count - 1
 	end
-	if game.player.force == game.forces["Purple"] then
-		online_count = purple_online - 1
+	if player.force == game.forces["Purple"] then
+		global.purple_count = global.purple_count - 1
 	end
 	update_count()
 end)
@@ -530,6 +541,7 @@ function join_orange(event)
         	end
     	end
 	global.orange_count_total = global.orange_count_total + 1
+	global.orange_count = global.orange_count + 1
 	player.teleport(game.forces["Orange"].get_spawn_position(s), game.surfaces.nauvis)
 	player.color = global.orange_color
 	player.force = game.forces["Orange"]
@@ -554,6 +566,7 @@ function join_purple(event)
         	end
     	end
 	global.purple_count_total = global.purple_count_total + 1
+	global.purple_count = global.purple_count + 1
 	player.teleport(game.forces["Purple"].get_spawn_position(s), game.surfaces.nauvis)
 	player.color = global.purple_color
 	player.force = game.forces["Purple"]
@@ -574,7 +587,7 @@ function starting_inventory(event)
 	player.insert{name="piercing-rounds-magazine", count=100}
 	player.insert{name="burner-mining-drill", count = 5}
 	player.insert{name="stone-furnace", count = 10}
-	player.insert{name="fish", count = 10}
+	player.insert{name="raw-fish", count = 10}
 end
 
 function show_health()
@@ -664,26 +677,8 @@ end
 
 -- updates the player count gui for total players joined each force, and players online for each force.
 function update_count()
-  local orange_total = global.orange_count_total
-  local purple_total = global.purple_count_total
-  local orange_online = global.orange_count
-  local purple_online = global.purple_count
-  for k, p in pairs (game.players) do
-	if p.force == game.forces.Orange then
-		if p.connected then
-			orange_online = orange_online + 1
-		end
-	end	
-  end
-  for k,p in pairs(game.players) do
-	if p.force == game.forces.Purple then
-		if p.connected then
-			purple_online = purple_online + 1
-		end
-	end	
-  end
-  local orange_status = "orange("..orange_online.."/"..global.orange_count_total..")"
-  local purple_status = "purple("..purple_online.."/"..global.purple_count_total..")"
+  local orange_status = "orange("..global.orange_count.."/"..global.orange_count_total..")"
+  local purple_status = "purple("..global.purple_count.."/"..global.purple_count_total..")"
   for k,p in pairs(game.players) do
     if p.gui.left.persons == nil then
 		local frame = p.gui.left.add{name="persons",type="frame",direction="horizontal",caption="Players"}
