@@ -1,12 +1,14 @@
 --Team PVP [Based on Roboport_PvP_Slow by Klonan]
 --A 3Ra Gaming revision
-	if not scenario then scenario = {} end
+if not scenario then scenario = {} end
 if not scenario.config then scenario.config = {} end
 --config and event must be called first.
-	require "locale/utils/event"
-	require "local/utils/undecorator"
-	require "server"
-	require "technologies"
+--require "config"
+require "locale/utils/event"
+require "locale/utils/admin"
+require "locale/utils/undecorator"
+require "server"
+require "technologies"
 
 --Starting Variables
 global.orange_count_total = 0
