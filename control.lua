@@ -1,6 +1,15 @@
 --Team PVP [Based on Roboport_PvP_Slow by Klonan]
 --A 3Ra Gaming revision
 --Starting Variables
+
+if not scenario then scenario = {} end
+if not scenario.config then scenario.config = {} end
+--config and event must be called first.
+require "config"
+require "locale/utils/event"
+require "locale/utils/admin"
+require "locale/utils/undecorator"
+
 global.orange_count_total = 0
 global.purple_count_total = 0
 
