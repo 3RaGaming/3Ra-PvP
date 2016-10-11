@@ -1,6 +1,7 @@
 --Team PVP [Based on Roboport_PvP_Slow by Klonan]
 --A 3Ra Gaming revision
-
+	
+	require "server"
 	require "technologies"
 
 --Starting Variables
