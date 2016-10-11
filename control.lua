@@ -653,6 +653,7 @@ function force_spectators(index)
 end
 
 function spectate_gui()
+	if player.connected then
     for k, player in pairs(game.players) do
 		if player.force == game.forces["Spectators"] then
 			if not player.gui.left.health_frame then
@@ -694,12 +695,10 @@ function update_count()
   end
 end
 
-	--this is for a server to monotor chat and print chat in game from a web page.(@StudMuffin/Discord)
+--Special command for communicating through our custom web-gui
 function server_message(user, message)
-    	print("[WEB] ", user, ": ", message)
-    	for _, p in pairs (game.connected_players) do
-        	p.print("[WEB] ", user, ": ", message)
-    	end
+    print("[WEB] "..user..": "..message)
+    game.print("[WEB] "..user..": "..message)
 end
 
 function show_update_score()
