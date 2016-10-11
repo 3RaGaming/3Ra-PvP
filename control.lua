@@ -1,5 +1,8 @@
 --Team PVP [Based on Roboport_PvP_Slow by Klonan]
 --A 3Ra Gaming revision
+
+	require "technologies"
+
 --Starting Variables
 global.orange_count_total = 0
 global.purple_count_total = 0
@@ -58,7 +61,7 @@ script.on_init(function()
 	global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
   
 	init_attack_data()
-	make_forces()  
+	make_forces()
 	make_lobby()
 end)
 
@@ -71,13 +74,15 @@ script.on_event(defines.events.on_tick, function(event)
 	show_health()
   if game.tick % 20 == 0 then
 		color()
+		spectate_gui()
   end
 	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 		set_spawns()
+		set_starting_areas()
+		research_technology()
 		for k, p in pairs (game.players) do
 			make_team_option(p)
 		end
-		set_starting_areas()
 	end
 	local current_time = game.tick / 60 - global.timer_value
 	local message_display = "test"
@@ -311,6 +316,7 @@ function set_spawns()
 		global.p_roboport.insert{name = "repair-pack", count = 20}
 		global.p_roboport.backer_name = "Purple"
 		p_turret = s.create_entity{name = "gun-turret", position = {ppnc.x,ppnc.y-5}, force = purple}
+		p_turret.minable = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
 		orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
@@ -321,6 +327,7 @@ function set_spawns()
 		global.o_roboport.insert{name = "repair-pack", count = 20}
 		global.o_roboport.backer_name = "Orange"
 		o_turret = s.create_entity{name = "gun-turret", position = {opnc.x,opnc.y-5}, force = orange}
+		o_turret.minable = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
 		purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
 		for k, p in pairs (game.players) do
@@ -566,137 +573,11 @@ function starting_inventory(event)
 	player.insert{name="piercing-rounds-magazine", count=100}
 	player.insert{name="burner-mining-drill", count = 5}
 	player.insert{name="stone-furnace", count = 10}
+	player.insert{name="fish", count = 10}
 end
 
--- distance between bases
-script.on_init(function()
-	global.purple_team_x = math.random(370,380)
-	global.purple_team_y = math.random(0,0)
-	global.purple_team_position ={ global.purple_team_x, global.purple_team_y}
-	global.purple_team_area = {{ global.purple_team_x - d,  global.purple_team_y - d},{ global.purple_team_x + d,  global.purple_team_y + d}}
-	global.orange_team_x = 0 - math.random(370,380)
-	global.orange_team_y = 0 - math.random(0,0)
-	global.orange_team_position = { global.orange_team_x, global.orange_team_y}
-	global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
-  
-	init_attack_data()
-	make_forces()  
-	make_lobby()
-end)
-
-script.on_event(defines.events.on_player_created, function(event)
-	if global.orange_count == nil then
-		global.orange_count = 0
-	end
-	if global.purple_count == nil then
-		global.purple_count = 0
-	end
-	local player = game.players[event.player_index]
-	player.teleport({0,8},game.surfaces["Lobby"])
-	player.print({"msg-intro1"})
-	player.print({"msg-intro2"})
- 
-	if game.tick > 50*60 then    ------------*************vvvvvvthese have to match**********----------
-		make_team_option(player)
-	else 
-		player.print({"msg-intro3"})
-	end
-end)
-
-script.on_event(defines.events.on_tick, function(event)
-	show_health()
-	win()
-  	if game.tick % 20 == 0 then
-		color()
-  	end
-	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
-		set_spawns()
-		for k, p in pairs (game.players) do
-			make_team_option(p)
-		end
-		set_starting_areas()
-	end
-		
-	--global variables for the message desplay
-	if global.timer_value == nil then global.timer_value = 0 end
-	if global.timer_wait == nil then global.timer_wait = 595 end
-	if global.timer_display == nil then global.timer_display = 1 end
-	
-	local current_time = game.tick / 60 - global.timer_value
-	local message_display = "test"
-	if current_time >= global.timer_wait then
-		if global.timer_display == 1 then
-			message_display = {"msg-announce1"}
-			global.timer_display = 2
-		else
-			message_display = {"msg-announce2"}
-			global.timer_display = 1
-		end
-		for k, player in pairs(game.players) do
-			player.print(message_display)
-		end
-		global.timer_value = game.tick / 60
-	end
-end)
-
-script.on_event(defines.events.on_gui_click, function(event)
-	local s = game.surfaces.nauvis
-	local player = game.players[event.player_index]
-    	local index = event.player_index
-    	local element = event.element.name
-		
-	if player.gui.top.flashlight == nil then
-        	if element ~= nil then
-            	if element == "flashlight" then
-                	if player.character == nil then return end
-                	if global.player_flashlight_state == nil then global.player_flashlight_state = {} end
-                	if global.player_flashlight_state[event.player_index] == nil then global.player_flashlight_state[event.player_index] = true end
-    
-                	if global.player_flashlight_state[event.player_index] then
-                   		global.player_flashlight_state[event.player_index] = false
-                    		player.character.disable_flashlight()
-                	else
-                    		global.player_flashlight_state[event.player_index] = true
-                    		player.character.enable_flashlight()
-                	end
-            	end
-        end
-	end	
-	if player.gui.center.end_message ~= nil then
-		if (event.element.name == "end_message_button") then
-			player.gui.center.end_message.destroy()
-		end
-    	end
-	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "orange") then
-			if global.orange_count > global.purple_count then player.print("Too many Players on that team") return end
-				join_orange(event)
-		end
-	end
-	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "purple") then
-			if global.purple_count > global.orange_count then player.print("Too many Players on that team") return end
-				join_purple(event)
-		end
-	end
-	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "spectator") then
-			force_spectators(index)
-		end
-		--destroy.character
-		--make controller ghost
-	end
-    	if player.gui.left.spectate ~= nil then
-        	if element ~= nil then
-            		if element == "spectate" then
-              			force_spectators(index)
-            		end
-        	end
-    	end
-end)
-
 function show_health()
-    	for k, player in pairs(game.players) do
+    for k, player in pairs(game.players) do
 		if player.connected then
 			if player.character then
 				if player.character.health == nil then return end
@@ -716,9 +597,9 @@ function show_health()
 						end
 					end
 				end
-            		end
-        	end
-    	end 
+			end
+        end
+    end 
 end	
 
 function force_spectators(index)
@@ -753,6 +634,31 @@ function force_spectators(index)
         global.player_spectator_state[index] = true
 		player.print("You are now a spectator")
     	end
+end
+
+function spectate_gui()
+    for k, player in pairs(game.players) do
+		if player.force == game.forces["Spectators"] then
+			if not player.gui.left.health_frame then
+				local frame = player.gui.left.add{name = "health_frame", type = "frame", direction = "vertical", caption = "Player Health"}
+				frame.style.minimal_width = 160
+				local health_table = frame.add{name = "health_table", type = "table", colspan = 1}
+				for i, players in pairs (game.players) do
+					health_table.add{name = "player"..i, type = "label", caption = {"",players.name,": "}}
+					health_table.add{name = "health"..i, type = "progressbar", size = 100}
+				end
+				else
+				for i, player in pairs (game.players) do
+					if player.character == nil then return end
+					player.gui.left.health_frame.health_table["health"..i].value=math.ceil(player.character.health)
+				end
+			end	
+		else 
+			if player.gui.left.health_frame then
+				player.gui.left.health_frame.destroy()
+			end	
+        end
+    end
 end
 
 -- updates the player count gui for total players joined each force, and players online for each force.
