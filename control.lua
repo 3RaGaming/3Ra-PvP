@@ -3,11 +3,10 @@
 if not scenario then scenario = {} end
 if not scenario.config then scenario.config = {} end
 --config and event must be called first.
-require "config"
+--require "config"
 require "locale/utils/event"
 require "locale/utils/admin"
 require "locale/utils/undecorator"
-require "locale/utils/gravestone"
 require "server"
 require "technologies"
 
@@ -78,76 +77,74 @@ global.timer_value = 0
 global.timer_wait = 600
 global.timer_display = 1
 
-local function tick_update(event)
-    show_health()
-    if game.tick % 20 == 0 then
-        color()
-        spectate_gui()
-    end
-    if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
-    set_spawns()
-    set_starting_areas()
-    research_technology()
-    for k, p in pairs (game.players) do
-        make_team_option(p)
-    end
-    end
-    local current_time = game.tick / 60 - global.timer_value
-    local message_display = "test"
-    if current_time >= global.timer_wait then
-        if global.timer_display == 1 then
-            message_display = {"msg-announce1"}
-            global.timer_display = 2
-        else
-            message_display = {"msg-announce2"}
-            global.timer_display = 1
-        end
-        for k, player in pairs(game.players) do
-            player.print(message_display)
-        end
-        global.timer_value = game.tick / 60
-    end
-end
-Event.register(defines.events.on_tick, tick_update)
+script.on_event(defines.events.on_tick, function(event)
+	show_health()
+  if game.tick % 20 == 0 then
+		color()
+		spectate_gui()
+  end
+	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
+		set_spawns()
+		set_starting_areas()
+		research_technology()
+		for k, p in pairs (game.players) do
+			make_team_option(p)
+		end
+	end
+	local current_time = game.tick / 60 - global.timer_value
+	local message_display = "test"
+	if current_time >= global.timer_wait then
+		if global.timer_display == 1 then
+			message_display = {"msg-announce1"}
+			global.timer_display = 2
+		else
+			message_display = {"msg-announce2"}
+			global.timer_display = 1
+		end
+		for k, player in pairs(game.players) do
+			player.print(message_display)
+		end
+		global.timer_value = game.tick / 60
+	end
+end)
 
-local function player_creation(event)
-    if global.orange_count == nil then
-        global.orange_count = 0
-    end
-    if global.purple_count == nil then
-        global.purple_count = 0
-    end
-    local player = game.players[event.player_index]
-    player.teleport({0,8},game.surfaces["Lobby"])
-    player.print({"msg-intro1"})
-    player.print({"msg-intro2"})
+script.on_event(defines.events.on_player_created, function(event)
+	if global.orange_count == nil then
+		global.orange_count = 0
+	end
+	if global.purple_count == nil then
+		global.purple_count = 0
+	end
+	local player = game.players[event.player_index]
+	player.teleport({0,8},game.surfaces["Lobby"])
+	player.print({"msg-intro1"})
+	player.print({"msg-intro2"})
+ 
+	if game.tick > 50*60 then    ------------*************vvvvvvthese have to match**********----------
+		make_team_option(player)
+	else 
+		player.print({"msg-intro3"})
+	end
+end)
 
-    if game.tick > 50*60 then    ------------*************vvvvvvthese have to match**********----------
-    make_team_option(player)
-    else
-        player.print({"msg-intro3"})
-    end
-end
-Event.register(defines.events.on_player_created, player_creation)
-
-local function button_click(event)
-    local s = game.surfaces.nauvis
-    local player = game.players[event.player_index]
+script.on_event(defines.events.on_gui_click, function(event)
+	local s = game.surfaces.nauvis
+	local player = game.players[event.player_index]
     local index = event.player_index
     local element = event.element.name
-
-    if player.gui.top.flashlight == nil then
+		
+	if player.gui.top.flashlight == nil then
         if element ~= nil then
             if element == "flashlight" then
                 if player.character == nil then return end
                 if global.player_flashlight_state == nil then
                     global.player_flashlight_state = {}
                 end
-
+                
                 if global.player_flashlight_state[event.player_index] == nil then
                     global.player_flashlight_state[event.player_index] = true
                 end
-
+    
                 if global.player_flashlight_state[event.player_index] then
                     global.player_flashlight_state[event.player_index] = false
                     player.character.disable_flashlight()
@@ -157,69 +154,82 @@ local function button_click(event)
                 end
             end
         end
+	end	
+	if player.gui.center.end_message ~= nil then
+		if (event.element.name == "end_message_button") then
+			player.gui.center.end_message.destroy()
+		end
     end
-    if player.gui.center.end_message ~= nil then
-        if (event.element.name == "end_message_button") then
-            player.gui.center.end_message.destroy()
+	if player.gui.left.choose_team ~= nil then
+		if (event.element.name == "orange") then
+			if global.orange_count > global.purple_count then player.print("Too many Players on that team") return end
+				join_orange(event)
+		end
+	end
+	if player.gui.left.choose_team ~= nil then
+		if (event.element.name == "purple") then
+			if global.purple_count > global.orange_count then player.print("Too many Players on that team") return end
+				join_purple(event)
+		end
+	end
+	if player.gui.left.choose_team ~= nil then
+		if (event.element.name == "spectator") then
+			force_spectators(index)
+		end
+		--destroy.character
+		--make controller ghost
+	end
+    if player.gui.left.spectate ~= nil then
+        if element ~= nil then
+            if element == "spectate" then
+                force_spectators(index)
+            end
         end
     end
-    if player.gui.left.choose_team ~= nil then
-        if (event.element.name == "orange") then
-            if global.orange_count > global.purple_count then player.print("Too many Players on that team") return end
-            join_orange(event)
-        end
-    end
-    if player.gui.left.choose_team ~= nil then
-        if (event.element.name == "purple") then
-            if global.purple_count > global.orange_count then player.print("Too many Players on that team") return end
-            join_purple(event)
-        end
-    end
-    if player.gui.left.choose_team ~= nil then
-        if (event.element.name == "spectator") then
-            force_spectators(index)
-        end
-        --destroy.character
-        --make controller ghost
-    end
-end
-Event.register(defines.events.on_gui_click, button_click)
+end)
 
-local function player_joined(event)
-    local player = game.players[event.player_index]
+script.on_event(defines.events.on_player_joined_game, function(event)
+	local player = game.players[event.player_index]
     if player.gui.left.flashlight == nil then
         local frame = player.gui.left.add{name = "flashlight", type = "button", direction = "horizontal", caption = "flashlight"}
     end
+	
+	if player.admin == true then
+        if player.gui.left.spectate == nil then
+            local adminframe = player.gui.left.add{name = "spectate", type = "button", direction = "horizontal", caption = "spectate"}
+        end
+		if game.tick > 60 then
+			for k, p in pairs (game.players) do
+				p.print("All Hail Admin "..player.name)
+			end
+		end
+	end
+	if player.force == game.forces["Orange"] then
+		global.orange_count = global.orange_count + 1
+	end
+	if player.force == game.forces["Purple"] then
+		global.purple_count = global.purple_count + 1
+	end
+	show_update_score()
+	update_count()
+ end)
 
-    if player.force == game.forces["Orange"] then
-        global.orange_count = global.orange_count + 1
-    end
-    if player.force == game.forces["Purple"] then
-        global.purple_count = global.purple_count + 1
-    end
-    show_update_score()
-    update_count()
-end
-Event.register(defines.events.on_player_joined_game, player_joined)
-
-local function player_left(event)
-    player = game.players[event.player_index]
-    if player.force == game.forces["Orange"] then
-        global.orange_count = global.orange_count - 1
-    end
-    if player.force == game.forces["Purple"] then
-        global.purple_count = global.purple_count - 1
-    end
-    update_count()
-end
-Event.register(defines.events.on_player_left_game, player_left)
-
-local function player_respawned(event)
-    local player = game.players[event.player_index]
-    player.insert{name="submachine-gun", count=1}
-    player.insert{name="firearm-magazine", count=10}
-end
-Event.register(defines.events.on_player_respawned, player_respawned)
+script.on_event(defines.events.on_player_left_game, function(event)
+	player = game.players[event.player_index]
+	if player.force == game.forces["Orange"] then
+		global.orange_count = global.orange_count - 1
+	end
+	if player.force == game.forces["Purple"] then
+		global.purple_count = global.purple_count - 1
+	end
+	update_count()
+end)
+ 
+script.on_event(defines.events.on_player_respawned, function(event)
+	local player = game.players[event.player_index]
+	player.insert{name="submachine-gun", count=1}
+	player.insert{name="firearm-magazine", count=10}
+end)
 
 -- for backwards compatibility
 script.on_configuration_changed(function(data)
@@ -237,19 +247,63 @@ script.on_configuration_changed(function(data)
 	end
 end)
 
-local function player_died(event)
-    if global.kill_count_purple == nil then global.kill_count_purple = 0 end
-    if global.kill_count_orange == nil then global.kill_count_orange = 0 end
-    local player = game.players[event.player_index]
-    if player.force.name == "Orange" then
-        global.kill_count_purple = global.kill_count_purple + 1
-    end
-    if player.force.name == "Purple" then
-        global.kill_count_orange = global.kill_count_orange + 1
-    end
-    show_update_score()
-end
-Event.register(defines.events.on_player_died, player_died)
+	-- not working, not breaking. supposed to clear the players cursor_stack before they die so it ends up with their loot.
+script.on_event(defines.events.on_pre_player_died, function(event)
+	local player = game.players[event.player_index]
+	player.cursor_stack.clear()
+end)
+
+	-- on death (player) spawn a "grave" at their location holding thier loot.
+script.on_event(defines.events.on_entity_died, function(event)
+	local entity = event.entity
+
+	if entity == global.p_roboport then
+		global.drbp = entity.position orange_destroy_p()
+	end
+	if entity == global.o_roboport then
+		global.drbp = entity.position purple_destroy_o()
+	end
+	if entity.type == "player" then
+		local pos = entity.surface.find_non_colliding_position("steel-chest", entity.position, 8, 1)
+		if not pos then return end
+		local grave = entity.surface.create_entity{name="steel-chest", position=pos, force="neutral"}
+		if protective_mode then
+			grave.destructible = false
+		end
+			local grave_inv = grave.get_inventory(defines.inventory.chest)
+			local count = 0
+		for i, id in ipairs{
+			defines.inventory.player_guns,
+			defines.inventory.player_tools,
+			defines.inventory.player_ammo,
+			defines.inventory.player_quickbar,
+			defines.inventory.player_armor,
+			defines.inventory.player_main,
+			defines.inventory.player_trash} do
+			local inv = entity.get_inventory(id)
+			for j = 1, #inv do
+				if inv[j].valid_for_read then
+					count = count + 1
+					if count > #grave_inv then return end
+					grave_inv[count].set_stack(inv[j])	
+				end
+			end
+		end	
+	end	
+end)
+	
+script.on_event(defines.events.on_player_died, function(event)
+	if global.kill_count_purple == nil then global.kill_count_purple = 0 end
+	if global.kill_count_orange == nil then global.kill_count_orange = 0 end
+	local player = game.players[event.player_index]
+	if player.force.name == "Orange" then
+		global.kill_count_purple = global.kill_count_purple + 1  
+	end	
+	if player.force.name == "Purple" then
+		global.kill_count_orange = global.kill_count_orange + 1
+	end
+	show_update_score()
+end)
 
 function make_forces()
 	local s = game.surfaces["nauvis"]
@@ -380,7 +434,7 @@ function purple_destroy_o()
 		p.print("Purple was Awarded 40 Points")
 		--end	
 	end
-	Event.register(defines.events.on_tick, kill_orange)
+	script.on_event(defines.events.on_tick, kill_orange)
 	global.ending_tick = game.tick + 300
 end
 
@@ -396,12 +450,12 @@ function orange_destroy_p()
 		--end	
 	end
 
-	Event.register(defines.events.on_tick, kill_purple)
+	script.on_event(defines.events.on_tick, kill_purple)
 	global.ending_tick = game.tick + 300
 end
 	
 	-- if the Orange roboport is destroyed, spawn a series of explosions.
-function kill_orange(event)
+function kill_orange()
 	local s = game.surfaces["nauvis"]
 	local drx = global.drbp.x
 	local dry = global.drbp.y
@@ -414,7 +468,7 @@ function kill_orange(event)
 end
 
 	-- if the Purple roboport is destroyed, spawn a series of explosions.
-function kill_purple(event)
+function kill_purple()
 	local s = game.surfaces["nauvis"]
 	local drx = global.drbp.x
 	local dry = global.drbp.y
@@ -430,15 +484,15 @@ end
 function win()
 	if global.kill_count_purple >= 100 then
 		global.end_screen = game.tick + 180
-		Event.register(defines.events.on_tick, purple_win)
+		script.on_event(defines.events.on_tick, purple_win) 
 	end
 	if global.kill_count_orange >= 100 then
 		global.end_screen = game.tick + 180
-		Event.register(defines.events.on_tick, orange_win)
+		script.on_event(defines.events.on_tick, orange_win) 
 	end
 end
 
-function orange_win(event)
+function orange_win()
 	if game.tick == global.end_screen then 
 		for k, player in pairs (game.players) do
 			if player.force.name == "Orange" then
@@ -451,7 +505,7 @@ function orange_win(event)
 	end	
 end
 
-function purple_win(event)
+function purple_win()
 	if game.tick == global.end_screen then
 		for k, player in pairs (game.players) do
 			if player.force.name == "Purple" then
@@ -562,6 +616,40 @@ function show_health()
 			end
         end
     end 
+end	
+
+function force_spectators(index)
+    	local player = game.players[index]
+    	if global.player_spectator_state == nil then global.player_spectator_state = {} end
+    	if global.player_spectator_character == nil then global.player_spectator_character = {}  end
+    	if global.player_spectator_force == nil then global.player_spectator_force = {} end
+    	if global.player_spectator_state[index] then
+        	--remove spectator mode
+        	if player.character == nil and global.player_spectator_character[index] ~= nil then
+            		local pos = player.position
+			player.set_controller{type=defines.controllers.character, character=global.player_spectator_character[index]}
+            		player.teleport(pos)
+		end
+        global.player_spectator_state[index] = false
+        player.force = game.forces[global.player_spectator_force[index].name]
+        player.print("Summoning your character")
+    else
+        --put player in spectator mode
+        if player.surface.name == "Lobby" then
+            player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
+        end
+        if player.character then
+            global.player_spectator_character[index] = player.character
+            global.player_spectator_force[index] = player.force
+    		--if player.character then
+            --    player.character.destroy()
+            --end
+    		player.set_controller{type = defines.controllers.ghost}
+        end
+        player.force = game.forces["Spectators"]
+        global.player_spectator_state[index] = true
+		player.print("You are now a spectator")
+    	end
 end
 
 function spectate_gui()
