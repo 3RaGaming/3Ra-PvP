@@ -594,6 +594,7 @@ function starting_inventory(event)
 	player.insert{name="raw-fish", count = 10}
 end
 
+	-- shows player health as a text float.
 function show_health()
     for k, player in pairs(game.players) do
 		if player.connected then
@@ -605,6 +606,8 @@ function show_health()
 				if global.player_health[index] == nil then global.player_health[index] = health end
 				if global.player_health[index] ~= health then
 					global.player_health[index] = health
+					-- slows the player just slightly if not at full health
+					if health > 99 then player.character_running_speed_modifier = 0 else player.character_running_speed_modifier = -.1 end
 					if health < 80 then
 						if health > 50 then
 							player.surface.create_entity{name="flying-text", color={b = 0.2, r= 0.1, g = 1, a = 0.8}, text=(health), position= {player.position.x, player.position.y-2}}
@@ -613,7 +616,7 @@ function show_health()
 						else
 							player.surface.create_entity{name="flying-text", color={b = 0.1, r= 1, g = 0, a = 0.8}, text=(health), position= {player.position.x, player.position.y-2}}
 						end
-					end
+					end	
 				end
 			end
         end
