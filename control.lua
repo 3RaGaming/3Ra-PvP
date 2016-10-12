@@ -23,8 +23,8 @@ global.purple_count = 0
 
 d = 32 * 3
 bd = d * 3
-global.orange_color = { b = 0, r = 0.8, g = 0.4, a = 0.8 }
-global.purple_color = { b = 0.8, r = 0.4, g = 0, a = 0.8 }
+global.orange_color = { b = 0, r = 0.8, g = 0.4, a = 1 }
+global.purple_color = { b = 0.9, r = 0.8, g = 0.4, a = 1 }
 
 normal_attack_sent_event = script.generate_event_name()
 landing_attack_sent_event = script.generate_event_name()
@@ -369,7 +369,7 @@ function make_team_option(player)
     if player.gui.left.choose_team == nil then
         local frame = player.gui.left.add { name = "choose_team", type = "frame", direction = "vertical", caption = "Choose your Team" }
         frame.add { type = "button", caption = "Join Orange Team", name = "orange" }.style.font_color = global.orange_color
-        frame.add { type = "button", caption = "Join Purple Team", name = "purple" }.style.font_color = { r = 0.5, b = 1, g = 0.1 }
+        frame.add { type = "button", caption = "Join Purple Team", name = "purple" }.style.font_color = global.purple_color
         if player.admin == true then
             frame.add { type = "button", caption = "Join Spectators", name = "spectator" }.style.font_color = { r = 0.1, b = 0.4, g = 1 }
         end
@@ -605,7 +605,7 @@ function update_count()
             local frame = p.gui.left.add { name = "persons", type = "frame", direction = "horizontal", caption = "Players" }
             frame.add { type = "label", name = "orange", caption = orange_status }.style.font_color = global.orange_color
             frame.add { type = "label", name = "Vs", caption = "VS", style = "caption_label_style" }
-            frame.add { type = "label", name = "purple", caption = purple_status, }.style.font_color = { r = 0.5, b = 1, g = 0.1 }
+            frame.add { type = "label", name = "purple", caption = purple_status, }.style.font_color = global.purple_color
         else
             p.gui.left.persons.orange.caption = orange_status
             p.gui.left.persons.purple.caption = purple_status
@@ -629,7 +629,7 @@ function show_update_score()
             if player.gui.left.kill_score == nil then
                 local frame = player.gui.left.add { name = "kill_score", type = "frame", direction = "horizontal", caption = "Kill score" }
                 frame.add { type = "label", caption = global.kill_count_orange, name = "kill_count_orange" }.style.font_color = global.orange_color
-                frame.add { type = "label", caption = global.kill_count_purple, name = "kill_count_purple" }.style.font_color = { r = 0.5, b = 1, g = 0.1 }
+                frame.add { type = "label", caption = global.kill_count_purple, name = "kill_count_purple" }.style.font_color = global.purple_color
             else
                 player.gui.left.kill_score.kill_count_purple.caption = tostring(global.kill_count_purple)
                 player.gui.left.kill_score.kill_count_orange.caption = tostring(global.kill_count_orange)
