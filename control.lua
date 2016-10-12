@@ -331,6 +331,7 @@ function set_spawns()
 		global.p_roboport.backer_name = "Purple"
 		p_turret = s.create_entity{name = "gun-turret", position = {ppnc.x,ppnc.y-5}, force = purple}
 		p_turret.minable = false
+		p_turret.destructible = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
 		orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
@@ -342,6 +343,7 @@ function set_spawns()
 		global.o_roboport.backer_name = "Orange"
 		o_turret = s.create_entity{name = "gun-turret", position = {opnc.x,opnc.y-5}, force = orange}
 		o_turret.minable = false
+		o_turret.destructible = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
 		purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
 		for k, p in pairs (game.players) do
@@ -653,7 +655,6 @@ function force_spectators(index)
 end
 
 function spectate_gui()
-	if player.connected then
     for k, player in pairs(game.players) do
 		if player.force == game.forces["Spectators"] then
 			if not player.gui.left.health_frame then
@@ -666,9 +667,11 @@ function spectate_gui()
 				end
 				else
 				for i, player in pairs (game.players) do
-					if player.character == nil then return end
-					player.gui.left.health_frame.health_table["health"..i].value=math.ceil(player.character.health)
-				end
+					if player.connected then
+						if player.character == nil then return end
+						player.gui.left.health_frame.health_table["health"..i].value=math.ceil(player.character.health)
+					end
+				end	
 			end	
 		else 
 			if player.gui.left.health_frame then
@@ -677,6 +680,9 @@ function spectate_gui()
         end
     end
 end
+
+	player.clean_cursor()
+end)
 
 -- updates the player count gui for total players joined each force, and players online for each force.
 function update_count()
