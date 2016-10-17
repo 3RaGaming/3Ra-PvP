@@ -27,6 +27,8 @@ global.base_max_separation = 800
 global.base_separation = 0
 global.base_rotation = 0
 
+global.spawn_size = 128
+
 d = 32*3
 bd = d*3
 global.orange_color = {b = 0, r= 0.8, g = 0.4, a = 0.8}
@@ -335,7 +337,7 @@ function set_spawns()
 
 	if ppnc ~= nil and opnc ~= nil then
 		purple.set_spawn_position({ppnc.x,ppnc.y}, s)
-		for k, object in pairs (s.find_entities{{ppnc.x-5,ppnc.y-45},{ppnc.x+5,ppnc.y+5}}) do object.destroy() end
+		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size,ppnc.y-global.spawn_size},{ppnc.x+global.spawn_size,ppnc.y+global.spawn_size}}) do object.destroy() end
 		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = purple}
 		global.p_roboport.minable = false
 		global.p_roboport.insert{name = "construction-robot", count = 10}
@@ -348,7 +350,7 @@ function set_spawns()
 		--Remove it so players have to search for enemy base
 		--orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
-		for k, object in pairs (s.find_entities{{opnc.x-5,opnc.y-45},{opnc.x+5,opnc.y+5}}) do object.destroy() end
+		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size,opnc.y-global.spawn_size},{opnc.x+global.spawn_size,opnc.y+global.spawn_size}}) do object.destroy() end
 		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = orange}
 		global.o_roboport.minable = false
 		global.o_roboport.insert{name = "construction-robot", count = 10}
@@ -384,8 +386,8 @@ end
 function set_starting_areas()
 	local s = game.surfaces.nauvis
   
-  for x=-128,128,1 do
-    for y=-128,128,1 do
+  for x=-global.spawn_size,global.spawn_size,1 do
+    for y=-global.spawn_size,global.spawn_size,1 do
       local tile = s.get_tile(global.purple_team_x+x,global.purple_team_y+y)
       if (tile.name == "water" or tile.name == "deepwater") then
         s.set_tiles{{name = "grass", position = { global.purple_team_x+x,global.purple_team_y+y}}}  
@@ -411,15 +413,15 @@ function set_starting_areas()
     		{name = "water", position = { global.orange_team_x + 17, global.orange_team_y +17}}
 	}
 
-	for k, pr in pairs (s.find_entities_filtered{area = {{ global.purple_team_x-128,  global.purple_team_y-128},{ global.purple_team_x+128,  global.purple_team_y+128}}, type= "resource"}) do
+	for k, pr in pairs (s.find_entities_filtered{area = {{ global.purple_team_x-global.spawn_size,  global.purple_team_y-global.spawn_size},{ global.purple_team_x+global.spawn_size,  global.purple_team_y+global.spawn_size}}, type= "resource"}) do
 		pr.destroy()
 	end
   
-	for k, orr in pairs (s.find_entities_filtered{area = {{ global.orange_team_x-128, global.orange_team_y-128}, { global.orange_team_x+128, global.orange_team_y+128}}, type= "resource"}) do
+	for k, orr in pairs (s.find_entities_filtered{area = {{ global.orange_team_x-global.spawn_size, global.orange_team_y-global.spawn_size}, { global.orange_team_x+global.spawn_size, global.orange_team_y+global.spawn_size}}, type= "resource"}) do
 		orr.destroy()
 	end
   
-	for k, r in pairs (s.find_entities_filtered{area = {{-128, -128}, {128, 128}}, type= "resource"}) do
+	for k, r in pairs (s.find_entities_filtered{area = {{-global.spawn_size, -global.spawn_size}, {global.spawn_size, global.spawn_size}}, type= "resource"}) do
 		local prx = r.position.x
 		local pry = r.position.y
 		local prx = prx +  global.purple_team_x
