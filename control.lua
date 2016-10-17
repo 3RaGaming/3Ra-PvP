@@ -7,6 +7,7 @@ if not scenario.config then scenario.config = {} end
 require "locale/utils/event"
 require "locale/utils/admin"
 require "locale/utils/undecorator"
+require "locale/utils/entity_names"
 require "server"
 require "technologies"
 
@@ -336,8 +337,10 @@ function set_spawns()
 	opnc = s.find_non_colliding_position("player",  global.orange_team_position, 32,2)
 
 	if ppnc ~= nil and opnc ~= nil then
+    
+    
 		purple.set_spawn_position({ppnc.x,ppnc.y}, s)
-		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size,ppnc.y-global.spawn_size},{ppnc.x+global.spawn_size,ppnc.y+global.spawn_size}}) do object.destroy() end
+		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size/2,ppnc.y-global.spawn_size/2},{ppnc.x+global.spawn_size/2,ppnc.y+global.spawn_size/2}}) do object.destroy() end
 		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = purple}
 		global.p_roboport.minable = false
 		global.p_roboport.insert{name = "construction-robot", count = 10}
@@ -349,8 +352,9 @@ function set_spawns()
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
 		--Remove it so players have to search for enemy base
 		--orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
+    
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
-		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size,opnc.y-global.spawn_size},{opnc.x+global.spawn_size,opnc.y+global.spawn_size}}) do object.destroy() end
+		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size/2,opnc.y-global.spawn_size/2},{opnc.x+global.spawn_size/2,opnc.y+global.spawn_size/2}}) do object.destroy() end
 		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = orange}
 		global.o_roboport.minable = false
 		global.o_roboport.insert{name = "construction-robot", count = 10}
