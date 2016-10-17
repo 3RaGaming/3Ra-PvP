@@ -74,8 +74,8 @@ script.on_init(function()
   global.purple_team_position ={ global.purple_team_x, global.purple_team_y}
   global.purple_team_area = {{ global.purple_team_x - d,  global.purple_team_y - d},{ global.purple_team_x + d,  global.purple_team_y + d}}
   
-  global.purple_team_x = global.base_separation*math.cos(math.pi + global.base_rotation)
-  global.purple_team_y = global.base_separation*math.sin(math.pi + global.base_rotation)
+  global.orange_team_x = global.base_separation*math.cos(math.pi + global.base_rotation)
+  global.orange_team_y = global.base_separation*math.sin(math.pi + global.base_rotation)
   global.orange_team_position = { global.orange_team_x, global.orange_team_y}
   global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
   
