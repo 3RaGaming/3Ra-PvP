@@ -28,6 +28,8 @@ global.base_separation = 0
 global.base_rotation = 0
 
 global.spawn_size = 128
+-- controls how much slower you run as you lose health
+global.creepling_factor = 5
 
 d = 32*3
 bd = d*3
@@ -640,7 +642,8 @@ function show_health()
 				if global.player_health[index] ~= health then
 					global.player_health[index] = health
 					-- slows the player just slightly if not at full health
-					if health > 99 then player.character_running_speed_modifier = 0 else player.character_running_speed_modifier = -.1 end
+					player.character_running_speed_modifier = -.1*(100-health)*global.crippling_factor/100
+          -- prints player health when < 80%
 					if health < 80 then
 						if health > 50 then
 							player.surface.create_entity{name="flying-text", color={b = 0.2, r= 0.1, g = 1, a = 0.8}, text=(health), position= {player.position.x, player.position.y-2}}
