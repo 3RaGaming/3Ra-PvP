@@ -319,9 +319,8 @@ end)
 
 function make_forces()
 	local s = game.surfaces["nauvis"]
-  --Remove it so players have to search enemy base
-	--game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
-	--game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
+	game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
+	game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
 	game.create_force("Purple")
 	game.create_force("Orange")
 	game.create_force("Spectators")
@@ -346,7 +345,8 @@ function set_spawns()
 		p_turret.minable = false
 		p_turret.destructible = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
+    --Remove it so players have to search for enemy base
+		--orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
 		for k, object in pairs (s.find_entities{{opnc.x-5,opnc.y-45},{opnc.x+5,opnc.y+5}}) do object.destroy() end
 		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = orange}
@@ -358,7 +358,8 @@ function set_spawns()
 		o_turret.minable = false
 		o_turret.destructible = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
+    --Remove it so players have to search for enemy base
+		--purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
 		for k, p in pairs (game.players) do
 			p.print("Teams are now unlocked")
 		end
