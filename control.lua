@@ -319,8 +319,9 @@ end)
 
 function make_forces()
 	local s = game.surfaces["nauvis"]
-	game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
-	game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
+  --Remove it so players have to search enemy base
+	--game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
+	--game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
 	game.create_force("Purple")
 	game.create_force("Orange")
 	game.create_force("Spectators")
