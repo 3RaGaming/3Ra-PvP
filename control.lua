@@ -81,7 +81,7 @@ script.on_event(defines.events.on_tick, function(event)
 	show_health()
   if game.tick % 20 == 0 then
 		color()
-		spectate_gui()
+		--spectate_gui()
   end
 	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 		set_spawns()
@@ -418,7 +418,7 @@ function make_team_option(player)
 	if player.gui.left.choose_team == nil then
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
 		frame.add{type = "button", caption = "Join Orange Team", name = "orange"}.style.font_color = global.orange_color
-        	frame.add{type = "button", caption = "Join Purple Team", name = "purple"}.style.font_color = {r = 0.5,b = 1, g = 0.1}
+        	frame.add{type = "button", caption = "Join Purple Team", name = "purple"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
 		if player.admin == true then
 			frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r = 0.1,b = 0.4,g = 1}
 		end
@@ -503,7 +503,7 @@ function orange_win()
 			if player.force.name == "Purple" then
 				showdialog("You lost :(", "Purple team was beaten by the Orange team. Better luck next time.")
 			end
-		end	
+		end
 	end	
 end
 
@@ -516,7 +516,7 @@ function purple_win()
 			if player.force.name == "Orange" then
 				showdialog("You lost :(", "Orange team was beaten by the Purple team. Better luck next time.")
 			end
-		end	
+		end
 	end	
 end
 
@@ -657,32 +657,31 @@ function force_spectators(index)
     	end
 end
 
-function spectate_gui()
-    for k, player in pairs(game.players) do
-		if player.force == game.forces["Spectators"] then
-			if not player.gui.left.health_frame then
-				local frame = player.gui.left.add{name = "health_frame", type = "frame", direction = "vertical", caption = "Player Health"}
-				frame.style.minimal_width = 160
-				local health_table = frame.add{name = "health_table", type = "table", colspan = 1}
-				for i, players in pairs (game.players) do
-					health_table.add{name = "player"..i, type = "label", caption = {"",players.name,": "}}
-					health_table.add{name = "health"..i, type = "progressbar", size = 100}
-				end
-				else
-				for i, player in pairs (game.players) do
-					if player.connected then
-						if player.character == nil then return end
-						player.gui.left.health_frame.health_table["health"..i].value=math.ceil(player.character.health)
-					end
-				end	
-			end	
-		else 
-			if player.gui.left.health_frame then
-				player.gui.left.health_frame.destroy()
-			end	
-        end
-    end
-end
+--function spectate_gui()
+  --  for k, player in pairs(game.players) do
+--		if player.force == game.forces["Spectators"] then
+--			if player.gui.left.health_frame == nil then
+--				local frame = player.gui.left.add{name = "health_frame", type = "frame", direction = "vertical", caption = "Player Health"}
+--				frame.style.minimal_width = 160
+--				local health_table = frame.add{name = "health_table", type = "table", colspan = 1}
+--				for i, players in pairs (game.players) do
+--					health_table.add{name = "player"..i, type = "label", caption = {"",players.name,": "}}
+--					health_table.add{name = "health"..i, type = "progressbar", size = 100}
+--				end
+--      end
+--				for i, player in pairs (game.players) do
+--					if player.connected then
+--						if player.character == nil then return end
+--						player.gui.left.health_frame.health_table["health"..i].value=math.ceil(player.character.health)
+--					end
+--				end
+--		else 
+--			if player.gui.left.health_frame then
+--				player.gui.left.health_frame.destroy()
+--			end	
+ --       end
+ --   end
+--end
 
 	-- before a player dies clears cursor so can be added to their grave.
 script.on_event(defines.events.on_pre_player_died, function(event)
@@ -699,7 +698,7 @@ function update_count()
 		local frame = p.gui.left.add{name="persons",type="frame",direction="horizontal",caption="Players"}
 		frame.add{type="label",name="orange",caption=orange_status}.style.font_color = global.orange_color
 		frame.add{type="label", name="Vs", caption= "VS", style="caption_label_style"}
-		frame.add{type="label",name="purple",caption=purple_status,}.style.font_color = {r = 0.5,b = 1, g = 0.1}
+		frame.add{type="label",name="purple",caption=purple_status,}.style.font_color = {b = 0.91, r = 0.5, g = 0.4, a = 1}
     else
 		p.gui.left.persons.orange.caption = orange_status
 		p.gui.left.persons.purple.caption = purple_status
