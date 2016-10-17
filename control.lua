@@ -345,6 +345,7 @@ function set_spawns()
 		p_turret.minable = false
 		p_turret.destructible = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
+		--Remove it so players have to search for enemy base
 		--orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
 		for k, object in pairs (s.find_entities{{opnc.x-5,opnc.y-45},{opnc.x+5,opnc.y+5}}) do object.destroy() end
@@ -357,6 +358,7 @@ function set_spawns()
 		o_turret.minable = false
 		o_turret.destructible = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
+		--Remove it so players have to search for enemy base
 		--purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
 		for k, p in pairs (game.players) do
 			p.print("Teams are now unlocked")
