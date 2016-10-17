@@ -383,6 +383,20 @@ end
 
 function set_starting_areas()
 	local s = game.surfaces.nauvis
+  
+  for x=-128,128,1 do
+    for y=-128,128,1 do
+      local tile = s.get_tile(global.purple_team_x+x,global.purple_team_y+y)
+      if (tile.name == "water" or tile.name == "deepwater") then
+        s.set_tiles{{name = "grass", position = { global.purple_team_x+x,global.purple_team_y+y}}}  
+      end
+      tile = s.get_tile(global.orange_team_x+x,global.orange_team_y+y)
+      if (tile.name == "water" or tile.name == "deepwater") then
+        s.set_tiles{{name = "grass", position = { global.orange_team_x+x,global.orange_team_y+y}}} 
+      end
+    end
+  end
+  
 	s.set_tiles{
     		{name = "water", position ={ global.purple_team_x + 16,  global.purple_team_y +16}},
     		{name = "water", position ={ global.purple_team_x + 17,  global.purple_team_y +16}},
