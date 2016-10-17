@@ -29,7 +29,7 @@ global.base_rotation = 0
 
 global.spawn_size = 128
 -- controls how much slower you run as you lose health
-global.creepling_factor = 5
+global.crippling_factor = 5
 
 d = 32*3
 bd = d*3
