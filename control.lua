@@ -20,6 +20,13 @@ global.kill_count_orange = 0
 global.orange_count = 0
 global.purple_count = 0
 
+-- make sure base is at least 1000x1000
+global.base_min_separation = 700
+global.base_max_separation = 800
+
+global.base_separation = 0
+global.base_rotation = 0
+
 d = 32*3
 bd = d*3
 global.orange_color = {b = 0, r= 0.8, g = 0.4, a = 0.8}
@@ -58,14 +65,19 @@ end
 
 	
 script.on_init(function()
-	global.purple_team_x = math.random(370,380) -- distance between bases
-	global.purple_team_y = math.random(0,0)
-	global.purple_team_position ={ global.purple_team_x, global.purple_team_y}
-	global.purple_team_area = {{ global.purple_team_x - d,  global.purple_team_y - d},{ global.purple_team_x + d,  global.purple_team_y + d}}
-	global.orange_team_x = 0 - math.random(370,380) -- distance between bases
-	global.orange_team_y = 0 - math.random(0,0)
-	global.orange_team_position = { global.orange_team_x, global.orange_team_y}
-	global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
+  -- randomly rotate bases to make it more interesting
+  global.base_separation = math.random(global.base_min_separation,global.base_max_separation)/2
+  global.base_rotation = math.random(0,math.pi*2)
+  
+  global.purple_team_x = global.base_separation*math.cos(global.base_rotation)
+  global.purple_team_y = global.base_separation*math.sin(global.base_rotation)
+  global.purple_team_position ={ global.purple_team_x, global.purple_team_y}
+  global.purple_team_area = {{ global.purple_team_x - d,  global.purple_team_y - d},{ global.purple_team_x + d,  global.purple_team_y + d}}
+  
+  global.purple_team_x = global.base_separation*math.cos(math.pi + global.base_rotation)
+  global.purple_team_y = global.base_separation*math.sin(math.pi + global.base_rotation)
+  global.orange_team_position = { global.orange_team_x, global.orange_team_y}
+  global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
   
 	init_attack_data()
 	make_forces()
