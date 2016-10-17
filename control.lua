@@ -7,7 +7,6 @@ if not scenario.config then scenario.config = {} end
 require "locale/utils/event"
 require "locale/utils/admin"
 require "locale/utils/undecorator"
-require "locale/utils/entity_names"
 require "server"
 require "technologies"
 
