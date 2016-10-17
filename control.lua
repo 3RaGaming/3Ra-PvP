@@ -93,7 +93,6 @@ script.on_event(defines.events.on_tick, function(event)
 	show_health()
   if game.tick % 20 == 0 then
 		color()
-		spectate_gui()
   end
 	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 		set_spawns()
@@ -319,9 +318,9 @@ end)
 
 function make_forces()
 	local s = game.surfaces["nauvis"]
-  --Remove it so players have to search enemy base
-	--game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
-	--game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
+  --chart the area so the game can coppy the recourses 
+	game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
+	game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
 	game.create_force("Purple")
 	game.create_force("Orange")
 	game.create_force("Spectators")
@@ -346,7 +345,7 @@ function set_spawns()
 		p_turret.minable = false
 		p_turret.destructible = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
+		--orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
 		for k, object in pairs (s.find_entities{{opnc.x-5,opnc.y-45},{opnc.x+5,opnc.y+5}}) do object.destroy() end
 		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = orange}
@@ -358,7 +357,7 @@ function set_spawns()
 		o_turret.minable = false
 		o_turret.destructible = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
+		--purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
 		for k, p in pairs (game.players) do
 			p.print("Teams are now unlocked")
 		end
@@ -668,33 +667,6 @@ function force_spectators(index)
         global.player_spectator_state[index] = true
 		player.print("You are now a spectator")
     	end
-end
-
-function spectate_gui()
-    for k, player in pairs(game.players) do
-		if player.force == game.forces["Spectators"] then
-			if not player.gui.left.health_frame then
-				local frame = player.gui.left.add{name = "health_frame", type = "frame", direction = "vertical", caption = "Player Health"}
-				frame.style.minimal_width = 160
-				local health_table = frame.add{name = "health_table", type = "table", colspan = 1}
-				for i, players in pairs (game.players) do
-					health_table.add{name = "player"..i, type = "label", caption = {"",players.name,": "}}
-					health_table.add{name = "health"..i, type = "progressbar", size = 100}
-				end
-				else
-				for i, player in pairs (game.players) do
-					if player.connected then
-						if player.character == nil then return end
-						player.gui.left.health_frame.health_table["health"..i].value=math.ceil(player.character.health)
-					end
-				end	
-			end	
-		else 
-			if player.gui.left.health_frame then
-				player.gui.left.health_frame.destroy()
-			end	
-        end
-    end
 end
 
 	-- before a player dies clears cursor so can be added to their grave.
