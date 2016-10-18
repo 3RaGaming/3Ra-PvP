@@ -27,9 +27,9 @@ global.base_max_separation = 800
 global.base_separation = 0
 global.base_rotation = 0
 
-global.spawn_size = 128
+global.spawn_size = 90
 -- controls how much slower you run as you lose health
-global.crippling_factor = 5
+global.crippling_factor = 1
 
 d = 32*3
 bd = d*3
