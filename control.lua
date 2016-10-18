@@ -9,6 +9,7 @@ require "locale/utils/admin"
 require "locale/utils/undecorator"
 require "server"
 require "technologies"
+require "killstatistics"
 
 --Starting Variables
 global.orange_count_total = 0
