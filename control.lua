@@ -20,6 +20,17 @@ global.kill_count_orange = 0
 global.orange_count = 0
 global.purple_count = 0
 
+-- make sure base is at least 1000x1000
+global.base_min_separation = 700
+global.base_max_separation = 800
+
+global.base_separation = 0
+global.base_rotation = 0
+
+global.spawn_size = 90
+-- controls how much slower you run as you lose health
+global.crippling_factor = 1
+
 d = 32*3
 bd = d*3
 global.orange_color = {b = 0, r= 0.8, g = 0.4, a = 0.8}
@@ -58,21 +69,26 @@ end
 
 	
 script.on_init(function()
-	global.purple_team_x = math.random(370,380) -- distance between bases
-	global.purple_team_y = math.random(0,0)
-	global.purple_team_position ={ global.purple_team_x, global.purple_team_y}
-	global.purple_team_area = {{ global.purple_team_x - d,  global.purple_team_y - d},{ global.purple_team_x + d,  global.purple_team_y + d}}
-	global.orange_team_x = 0 - math.random(370,380) -- distance between bases
-	global.orange_team_y = 0 - math.random(0,0)
-	global.orange_team_position = { global.orange_team_x, global.orange_team_y}
-	global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
+  -- randomly rotate bases to make it more interesting
+  global.base_separation = math.random(global.base_min_separation,global.base_max_separation)/2
+  global.base_rotation = math.random(0,math.pi*2)
+  
+  global.purple_team_x = global.base_separation*math.cos(global.base_rotation)
+  global.purple_team_y = global.base_separation*math.sin(global.base_rotation)
+  global.purple_team_position ={ global.purple_team_x, global.purple_team_y}
+  global.purple_team_area = {{ global.purple_team_x - d,  global.purple_team_y - d},{ global.purple_team_x + d,  global.purple_team_y + d}}
+  
+  global.orange_team_x = global.base_separation*math.cos(math.pi + global.base_rotation)
+  global.orange_team_y = global.base_separation*math.sin(math.pi + global.base_rotation)
+  global.orange_team_position = { global.orange_team_x, global.orange_team_y}
+  global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
   
 	init_attack_data()
 	make_forces()
 	make_lobby()
 end)
 
-	--global variables for the message desplay
+--global variables for the message desplay
 global.timer_value = 0
 global.timer_wait = 600
 global.timer_display = 1
@@ -81,7 +97,6 @@ script.on_event(defines.events.on_tick, function(event)
 	show_health()
   if game.tick % 20 == 0 then
 		color()
-		--spectate_gui()
   end
 	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 		set_spawns()
@@ -247,7 +262,7 @@ script.on_configuration_changed(function(data)
 	end
 end)
 
-	-- on death (player) spawn a "grave" at their location holding thier loot.
+-- on death (player) spawn a "grave" at their location holding thier loot.
 script.on_event(defines.events.on_entity_died, function(event)
 	local entity = event.entity
 
@@ -301,6 +316,7 @@ end)
 
 function make_forces()
 	local s = game.surfaces["nauvis"]
+	--chart the area so the game can coppy the recourses 
 	game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
 	game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
 	game.create_force("Purple")
@@ -317,7 +333,7 @@ function set_spawns()
 
 	if ppnc ~= nil and opnc ~= nil then
 		purple.set_spawn_position({ppnc.x,ppnc.y}, s)
-		for k, object in pairs (s.find_entities{{ppnc.x-5,ppnc.y-45},{ppnc.x+5,ppnc.y+5}}) do object.destroy() end
+		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size/2,ppnc.y-global.spawn_size/2},{ppnc.x+global.spawn_size/2,ppnc.y+global.spawn_size/2}}) do object.destroy() end
 		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = purple}
 		global.p_roboport.minable = false
 		global.p_roboport.insert{name = "construction-robot", count = 10}
@@ -327,9 +343,9 @@ function set_spawns()
 		p_turret.minable = false
 		p_turret.destructible = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
+    
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
-		for k, object in pairs (s.find_entities{{opnc.x-5,opnc.y-45},{opnc.x+5,opnc.y+5}}) do object.destroy() end
+		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size/2,opnc.y-global.spawn_size/2},{opnc.x+global.spawn_size/2,opnc.y+global.spawn_size/2}}) do object.destroy() end
 		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = orange}
 		global.o_roboport.minable = false
 		global.o_roboport.insert{name = "construction-robot", count = 10}
@@ -339,7 +355,8 @@ function set_spawns()
 		o_turret.minable = false
 		o_turret.destructible = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
+		
+		
 		for k, p in pairs (game.players) do
 			p.print("Teams are now unlocked")
 		end
@@ -363,6 +380,20 @@ end
 
 function set_starting_areas()
 	local s = game.surfaces.nauvis
+  
+  for x=-global.spawn_size,global.spawn_size,1 do
+    for y=-global.spawn_size,global.spawn_size,1 do
+      local tile = s.get_tile(global.purple_team_x+x,global.purple_team_y+y)
+      if (tile.name == "water" or tile.name == "deepwater") then
+        s.set_tiles{{name = "grass", position = { global.purple_team_x+x,global.purple_team_y+y}}}  
+      end
+      tile = s.get_tile(global.orange_team_x+x,global.orange_team_y+y)
+      if (tile.name == "water" or tile.name == "deepwater") then
+        s.set_tiles{{name = "grass", position = { global.orange_team_x+x,global.orange_team_y+y}}} 
+      end
+    end
+  end
+  
 	s.set_tiles{
     		{name = "water", position ={ global.purple_team_x + 16,  global.purple_team_y +16}},
     		{name = "water", position ={ global.purple_team_x + 17,  global.purple_team_y +16}},
@@ -377,15 +408,15 @@ function set_starting_areas()
     		{name = "water", position = { global.orange_team_x + 17, global.orange_team_y +17}}
 	}
 
-	for k, pr in pairs (s.find_entities_filtered{area = {{ global.purple_team_x-128,  global.purple_team_y-128},{ global.purple_team_x+128,  global.purple_team_y+128}}, type= "resource"}) do
+	for k, pr in pairs (s.find_entities_filtered{area = {{ global.purple_team_x-global.spawn_size,  global.purple_team_y-global.spawn_size},{ global.purple_team_x+global.spawn_size,  global.purple_team_y+global.spawn_size}}, type= "resource"}) do
 		pr.destroy()
 	end
   
-	for k, orr in pairs (s.find_entities_filtered{area = {{ global.orange_team_x-128, global.orange_team_y-128}, { global.orange_team_x+128, global.orange_team_y+128}}, type= "resource"}) do
+	for k, orr in pairs (s.find_entities_filtered{area = {{ global.orange_team_x-global.spawn_size, global.orange_team_y-global.spawn_size}, { global.orange_team_x+global.spawn_size, global.orange_team_y+global.spawn_size}}, type= "resource"}) do
 		orr.destroy()
 	end
   
-	for k, r in pairs (s.find_entities_filtered{area = {{-128, -128}, {128, 128}}, type= "resource"}) do
+	for k, r in pairs (s.find_entities_filtered{area = {{-global.spawn_size, -global.spawn_size}, {global.spawn_size, global.spawn_size}}, type= "resource"}) do
 		local prx = r.position.x
 		local pry = r.position.y
 		local prx = prx +  global.purple_team_x
@@ -425,10 +456,8 @@ function purple_destroy_o()
 	show_update_score()
 	
 	for k, p in pairs (game.players) do
-		--if p.force == game.forces["Purple"] then
 		p.print("Orange teams Roboport has been destroyed")
-		p.print("Purple was Awarded 40 Points")
-		--end	
+		p.print("Purple was Awarded 40 Points")	
 	end
 	script.on_event(defines.events.on_tick, kill_orange)
 	global.ending_tick = game.tick + 300
@@ -440,17 +469,15 @@ function orange_destroy_p()
 	show_update_score()
 	
 	for k, p in pairs (game.players) do
-		--if p.force == game.forces["Purple"] then
-			p.print("Purple teams Roboport has been destroyed")
-			p.print("Orange was Awarded 40 Points")
-		--end	
+		p.print("Purple teams Roboport has been destroyed")
+		p.print("Orange was Awarded 40 Points")
 	end
 
 	script.on_event(defines.events.on_tick, kill_purple)
 	global.ending_tick = game.tick + 300
 end
-	
-	-- if the Orange roboport is destroyed, spawn a series of explosions.
+
+-- if the Orange roboport is destroyed, spawn a series of explosions.
 function kill_orange()
 	local s = game.surfaces["nauvis"]
 	local drx = global.drbp.x
@@ -463,7 +490,7 @@ function kill_orange()
 	end
 end
 
-	-- if the Purple roboport is destroyed, spawn a series of explosions.
+-- if the Purple roboport is destroyed, spawn a series of explosions.
 function kill_purple()
 	local s = game.surfaces["nauvis"]
 	local drx = global.drbp.x
@@ -476,7 +503,7 @@ function kill_purple()
 	end
 end
 
-	--check on tick, to see if anyone has won.
+--check on tick, to see if anyone has won.
 function win()
 	if global.kill_count_purple >= 100 then
 		global.end_screen = game.tick + 180
@@ -514,7 +541,7 @@ function purple_win()
 	end	
 end
 
-	--gui with a message, event on win.
+--gui with a message, event on win.
 function showdialog(title, message)
 	if game.tick == global.end_screen then
 		for i, player in pairs(game.players) do
@@ -527,7 +554,7 @@ function showdialog(title, message)
 	end
 end
 
-	-- when a player clicks the gui button to join orange.
+-- when a player clicks the gui button to join orange.
 function join_orange(event)
 	local s = game.surfaces.nauvis
 	local player = game.players[event.player_index]
@@ -601,7 +628,8 @@ function show_health()
 				if global.player_health[index] ~= health then
 					global.player_health[index] = health
 					-- slows the player just slightly if not at full health
-					if health > 99 then player.character_running_speed_modifier = 0 else player.character_running_speed_modifier = -.1 end
+					player.character_running_speed_modifier = -.1*(100-health)*global.crippling_factor/100
+					-- prints player health when < 80%
 					if health < 80 then
 						if health > 50 then
 							player.surface.create_entity{name="flying-text", color={b = 0.2, r= 0.1, g = 1, a = 0.8}, text=(health), position= {player.position.x, player.position.y-2}}
@@ -640,9 +668,6 @@ function force_spectators(index)
 		if player.character then
 			global.player_spectator_character[index] = player.character
 			global.player_spectator_force[index] = player.force
-			--if player.character then
-			--    player.character.destroy()
-			--end
 			player.set_controller{type = defines.controllers.ghost}
 		end
 		player.force = game.forces["Spectators"]
@@ -651,33 +676,7 @@ function force_spectators(index)
 	end
 end
 
---function spectate_gui()
-  --  for k, player in pairs(game.players) do
---		if player.force == game.forces["Spectators"] then
---			if player.gui.left.health_frame == nil then
---				local frame = player.gui.left.add{name = "health_frame", type = "frame", direction = "vertical", caption = "Player Health"}
---				frame.style.minimal_width = 160
---				local health_table = frame.add{name = "health_table", type = "table", colspan = 1}
---				for i, players in pairs (game.players) do
---					health_table.add{name = "player"..i, type = "label", caption = {"",players.name,": "}}
---					health_table.add{name = "health"..i, type = "progressbar", size = 100}
---				end
---      end
---				for i, player in pairs (game.players) do
---					if player.connected then
---						if player.character == nil then return end
---						player.gui.left.health_frame.health_table["health"..i].value=math.ceil(player.character.health)
---					end
---				end
---		else 
---			if player.gui.left.health_frame then
---				player.gui.left.health_frame.destroy()
---			end	
- --       end
- --   end
---end
-
-	-- before a player dies clears cursor so can be added to their grave.
+-- before a player dies clears cursor so can be added to their grave.
 script.on_event(defines.events.on_pre_player_died, function(event)
 	local player = game.players[event.player_index]
 	player.clean_cursor()
