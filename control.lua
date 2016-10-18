@@ -247,12 +247,6 @@ script.on_configuration_changed(function(data)
 	end
 end)
 
-	-- not working, not breaking. supposed to clear the players cursor_stack before they die so it ends up with their loot.
-script.on_event(defines.events.on_pre_player_died, function(event)
-	local player = game.players[event.player_index]
-	player.cursor_stack.clear()
-end)
-
 	-- on death (player) spawn a "grave" at their location holding thier loot.
 script.on_event(defines.events.on_entity_died, function(event)
 	local entity = event.entity
