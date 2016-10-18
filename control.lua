@@ -88,7 +88,7 @@ script.on_init(function()
 	make_lobby()
 end)
 
-	--global variables for the message desplay
+--global variables for the message desplay
 global.timer_value = 0
 global.timer_wait = 600
 global.timer_display = 1
@@ -262,13 +262,7 @@ script.on_configuration_changed(function(data)
 	end
 end)
 
-	-- not working, not breaking. supposed to clear the players cursor_stack before they die so it ends up with their loot.
-script.on_event(defines.events.on_pre_player_died, function(event)
-	local player = game.players[event.player_index]
-	player.cursor_stack.clear()
-end)
-
-	-- on death (player) spawn a "grave" at their location holding thier loot.
+-- on death (player) spawn a "grave" at their location holding thier loot.
 script.on_event(defines.events.on_entity_died, function(event)
 	local entity = event.entity
 
@@ -322,7 +316,7 @@ end)
 
 function make_forces()
 	local s = game.surfaces["nauvis"]
-  --chart the area so the game can coppy the recourses 
+	--chart the area so the game can coppy the recourses 
 	game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
 	game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
 	game.create_force("Purple")
@@ -338,8 +332,6 @@ function set_spawns()
 	opnc = s.find_non_colliding_position("player",  global.orange_team_position, 32,2)
 
 	if ppnc ~= nil and opnc ~= nil then
-    
-    
 		purple.set_spawn_position({ppnc.x,ppnc.y}, s)
 		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size/2,ppnc.y-global.spawn_size/2},{ppnc.x+global.spawn_size/2,ppnc.y+global.spawn_size/2}}) do object.destroy() end
 		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = purple}
@@ -351,8 +343,6 @@ function set_spawns()
 		p_turret.minable = false
 		p_turret.destructible = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		--Remove it so players have to search for enemy base
-		--orange.chart(s, {{ppnc.x-32,ppnc.y-42},{ppnc.x+32,ppnc.y+22}})
     
 		orange.set_spawn_position({opnc.x,opnc.y}, s)
 		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size/2,opnc.y-global.spawn_size/2},{opnc.x+global.spawn_size/2,opnc.y+global.spawn_size/2}}) do object.destroy() end
@@ -365,8 +355,8 @@ function set_spawns()
 		o_turret.minable = false
 		o_turret.destructible = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		--Remove it so players have to search for enemy base
-		--purple.chart(s, {{opnc.x-32,opnc.y-42},{opnc.x+32,opnc.y+22}})
+		
+		
 		for k, p in pairs (game.players) do
 			p.print("Teams are now unlocked")
 		end
@@ -453,7 +443,7 @@ function make_team_option(player)
 	if player.gui.left.choose_team == nil then
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
 		frame.add{type = "button", caption = "Join Orange Team", name = "orange"}.style.font_color = global.orange_color
-        	frame.add{type = "button", caption = "Join Purple Team", name = "purple"}.style.font_color = {r = 0.5,b = 1, g = 0.1}
+        	frame.add{type = "button", caption = "Join Purple Team", name = "purple"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
 		if player.admin == true then
 			frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r = 0.1,b = 0.4,g = 1}
 		end
@@ -466,10 +456,8 @@ function purple_destroy_o()
 	show_update_score()
 	
 	for k, p in pairs (game.players) do
-		--if p.force == game.forces["Purple"] then
 		p.print("Orange teams Roboport has been destroyed")
-		p.print("Purple was Awarded 40 Points")
-		--end	
+		p.print("Purple was Awarded 40 Points")	
 	end
 	script.on_event(defines.events.on_tick, kill_orange)
 	global.ending_tick = game.tick + 300
@@ -481,17 +469,15 @@ function orange_destroy_p()
 	show_update_score()
 	
 	for k, p in pairs (game.players) do
-		--if p.force == game.forces["Purple"] then
-			p.print("Purple teams Roboport has been destroyed")
-			p.print("Orange was Awarded 40 Points")
-		--end	
+		p.print("Purple teams Roboport has been destroyed")
+		p.print("Orange was Awarded 40 Points")
 	end
 
 	script.on_event(defines.events.on_tick, kill_purple)
 	global.ending_tick = game.tick + 300
 end
-	
-	-- if the Orange roboport is destroyed, spawn a series of explosions.
+
+-- if the Orange roboport is destroyed, spawn a series of explosions.
 function kill_orange()
 	local s = game.surfaces["nauvis"]
 	local drx = global.drbp.x
@@ -504,7 +490,7 @@ function kill_orange()
 	end
 end
 
-	-- if the Purple roboport is destroyed, spawn a series of explosions.
+-- if the Purple roboport is destroyed, spawn a series of explosions.
 function kill_purple()
 	local s = game.surfaces["nauvis"]
 	local drx = global.drbp.x
@@ -517,7 +503,7 @@ function kill_purple()
 	end
 end
 
-	--check on tick, to see if anyone has won.
+--check on tick, to see if anyone has won.
 function win()
 	if global.kill_count_purple >= 100 then
 		global.end_screen = game.tick + 180
@@ -538,7 +524,7 @@ function orange_win()
 			if player.force.name == "Purple" then
 				showdialog("You lost :(", "Purple team was beaten by the Orange team. Better luck next time.")
 			end
-		end	
+		end
 	end	
 end
 
@@ -551,11 +537,11 @@ function purple_win()
 			if player.force.name == "Orange" then
 				showdialog("You lost :(", "Orange team was beaten by the Purple team. Better luck next time.")
 			end
-		end	
+		end
 	end	
 end
 
-	--gui with a message, event on win.
+--gui with a message, event on win.
 function showdialog(title, message)
 	if game.tick == global.end_screen then
 		for i, player in pairs(game.players) do
@@ -568,7 +554,7 @@ function showdialog(title, message)
 	end
 end
 
-	-- when a player clicks the gui button to join orange.
+-- when a player clicks the gui button to join orange.
 function join_orange(event)
 	local s = game.surfaces.nauvis
 	local player = game.players[event.player_index]
@@ -643,7 +629,7 @@ function show_health()
 					global.player_health[index] = health
 					-- slows the player just slightly if not at full health
 					player.character_running_speed_modifier = -.1*(100-health)*global.crippling_factor/100
-          -- prints player health when < 80%
+					-- prints player health when < 80%
 					if health < 80 then
 						if health > 50 then
 							player.surface.create_entity{name="flying-text", color={b = 0.2, r= 0.1, g = 1, a = 0.8}, text=(health), position= {player.position.x, player.position.y-2}}
@@ -660,40 +646,37 @@ function show_health()
 end	
 
 function force_spectators(index)
-    	local player = game.players[index]
-    	if global.player_spectator_state == nil then global.player_spectator_state = {} end
-    	if global.player_spectator_character == nil then global.player_spectator_character = {}  end
-    	if global.player_spectator_force == nil then global.player_spectator_force = {} end
-    	if global.player_spectator_state[index] then
-        	--remove spectator mode
-        	if player.character == nil and global.player_spectator_character[index] ~= nil then
-            		local pos = player.position
+	local player = game.players[index]
+	if global.player_spectator_state == nil then global.player_spectator_state = {} end
+	if global.player_spectator_character == nil then global.player_spectator_character = {}  end
+	if global.player_spectator_force == nil then global.player_spectator_force = {} end
+	if global.player_spectator_state[index] then
+		--remove spectator mode
+		if player.character == nil and global.player_spectator_character[index] ~= nil then
+			local pos = player.position
 			player.set_controller{type=defines.controllers.character, character=global.player_spectator_character[index]}
-            		player.teleport(pos)
+			player.teleport(pos)
 		end
-        global.player_spectator_state[index] = false
-        player.force = game.forces[global.player_spectator_force[index].name]
-        player.print("Summoning your character")
-    else
-        --put player in spectator mode
-        if player.surface.name == "Lobby" then
-            player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
-        end
-        if player.character then
-            global.player_spectator_character[index] = player.character
-            global.player_spectator_force[index] = player.force
-    		--if player.character then
-            --    player.character.destroy()
-            --end
-    		player.set_controller{type = defines.controllers.ghost}
-        end
-        player.force = game.forces["Spectators"]
-        global.player_spectator_state[index] = true
+		global.player_spectator_state[index] = false
+		player.force = game.forces[global.player_spectator_force[index].name]
+		player.print("Summoning your character")
+	else
+		--put player in spectator mode
+		if player.surface.name == "Lobby" then
+			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
+		end
+		if player.character then
+			global.player_spectator_character[index] = player.character
+			global.player_spectator_force[index] = player.force
+			player.set_controller{type = defines.controllers.ghost}
+		end
+		player.force = game.forces["Spectators"]
+		global.player_spectator_state[index] = true
 		player.print("You are now a spectator")
-    	end
+	end
 end
 
-	-- before a player dies clears cursor so can be added to their grave.
+-- before a player dies clears cursor so can be added to their grave.
 script.on_event(defines.events.on_pre_player_died, function(event)
 	local player = game.players[event.player_index]
 	player.clean_cursor()
@@ -708,7 +691,7 @@ function update_count()
 		local frame = p.gui.left.add{name="persons",type="frame",direction="horizontal",caption="Players"}
 		frame.add{type="label",name="orange",caption=orange_status}.style.font_color = global.orange_color
 		frame.add{type="label", name="Vs", caption= "VS", style="caption_label_style"}
-		frame.add{type="label",name="purple",caption=purple_status,}.style.font_color = {r = 0.5,b = 1, g = 0.1}
+		frame.add{type="label",name="purple",caption=purple_status,}.style.font_color = {b = 0.91, r = 0.5, g = 0.4, a = 1}
     else
 		p.gui.left.persons.orange.caption = orange_status
 		p.gui.left.persons.purple.caption = purple_status
