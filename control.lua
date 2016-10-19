@@ -11,9 +11,6 @@ require "server"
 require "technologies"
 
 --Starting Variables
-global.orange_count_total = 0
-global.purple_count_total = 0
-
 global.kill_count_purple = 0
 global.kill_count_orange = 0
 
@@ -565,7 +562,6 @@ function join_orange(event)
             	player.set_controller{type = defines.controllers.character, character = character}
         	end
     	end
-	global.orange_count_total = global.orange_count_total + 1
 	global.orange_count = global.orange_count + 1
 	player.teleport(game.forces["Orange"].get_spawn_position(s), game.surfaces.nauvis)
 	player.color = global.orange_color
@@ -590,7 +586,6 @@ function join_purple(event)
             		player.set_controller{type = defines.controllers.character, character = character}
         	end
     	end
-	global.purple_count_total = global.purple_count_total + 1
 	global.purple_count = global.purple_count + 1
 	player.teleport(game.forces["Purple"].get_spawn_position(s), game.surfaces.nauvis)
 	player.color = global.purple_color
@@ -684,8 +679,6 @@ end)
 
 -- updates the player count gui for total players joined each force, and players online for each force.
 function update_count()
-  local orange_status = "orange("..global.orange_count.."/"..global.orange_count_total..")"
-  local purple_status = "purple("..global.purple_count.."/"..global.purple_count_total..")"
   for k,p in pairs(game.players) do
     if p.gui.left.persons == nil then
 		local frame = p.gui.left.add{name="persons",type="frame",direction="horizontal",caption="Players"}
