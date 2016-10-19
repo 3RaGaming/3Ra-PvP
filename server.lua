@@ -1,5 +1,10 @@
 
 
+--Special command for communicating through our custom web-gui
+function server_message(user, message)
+    print("[WEB] "..user..": "..message)
+    game.print("[WEB] "..user..": "..message)
+end
 
 function player_died(event)
   game.speed = 1

@@ -10,6 +10,8 @@ require "locale/utils/undecorator"
 require "server"
 require "technologies"
 require "win"
+require "spectators"
+require "gravestone"
 
 --Starting Variables
 global.kill_count_troy = 0
@@ -30,7 +32,7 @@ global.spawn_size = 90
 -- controls how much slower you run as you lose health
 global.crippling_factor = 1
 
---area found for destoying biters around team spawn
+--area found for charting and destoying biters around team spawn
 d = 32*3
 bd = d*3
 
@@ -191,7 +193,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 	end
 	if player.gui.left.choose_team ~= nil then
 		if (event.element.name == "spectator") then
-			join_spectators()
+			join_spectators(index)
 		end
 		--destroy.character
 		--make controller ghost
@@ -264,46 +266,20 @@ script.on_configuration_changed(function(data)
 	end
 end)
 
--- on death (player) spawn a "grave" at their location holding thier loot.
 script.on_event(defines.events.on_entity_died, function(event)
 	local entity = event.entity
-
+	
+	-- if roboports are killed 
 	if entity == global.p_roboport then
 		global.drbp = entity.position sparta_destroy_p()
 	end
 	if entity == global.o_roboport then
 		global.drbp = entity.position troy_destroy_o()
 	end
-	if entity.type == "player" then
-		local pos = entity.surface.find_non_colliding_position("steel-chest", entity.position, 8, 1)
-		if not pos then return end
-		local grave = entity.surface.create_entity{name="steel-chest", position=pos, force="neutral"}
-		if protective_mode then
-			grave.destructible = false
-		end
-			local grave_inv = grave.get_inventory(defines.inventory.chest)
-			local count = 0
-		for i, id in ipairs{
-			defines.inventory.player_guns,
-			defines.inventory.player_tools,
-			defines.inventory.player_ammo,
-			defines.inventory.player_quickbar,
-			defines.inventory.player_armor,
-			defines.inventory.player_main,
-			defines.inventory.player_trash} do
-			local inv = entity.get_inventory(id)
-			for j = 1, #inv do
-				if inv[j].valid_for_read then
-					count = count + 1
-					if count > #grave_inv then return end
-					grave_inv[count].set_stack(inv[j])	
-				end
-			end
-		end	
-	end	
 end)
 	
 script.on_event(defines.events.on_player_died, function(event)
+	gravestone(event)
 	if global.kill_count_troy == nil then global.kill_count_troy = 0 end
 	if global.kill_count_sparta == nil then global.kill_count_sparta = 0 end
 	local player = game.players[event.player_index]
@@ -445,9 +421,8 @@ function make_team_option(player)
 	if player.gui.left.choose_team == nil then
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
 		frame.add{type = "button", caption = "Join Sparta", name = "sparta"}.style.font_color = global.sparta_color
-        	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
-			frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
-		end
+       	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
+		frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
 	end
 end
 
@@ -540,65 +515,6 @@ function show_health()
     end 
 end	
 
--- for non admins spectating without a character
-function join_spectators()
-	local player = game.players[index]
-	if global.player_spectator_state == nil then global.player_spectator_state = {} end
-	if global.player_spectator_character == nil then global.player_spectator_character = {}  end
-	if global.player_spectator_force == nil then global.player_spectator_force = {} end
-	if global.player_spectator_state[index] then
-		--put player in spectator mode
-		if player.surface.name == "Lobby" then
-			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
-		end
-		if player.character then
-			player.character.destroy()
-			global.player_spectator_force[index] = player.force
-			player.set_controller{type = defines.controllers.ghost}
-		end
-		player.force = game.forces["Spectators"]
-		global.player_spectator_state[index] = true
-		player.print("You are now a spectator")
-	end
-end	
-
-function force_spectators(index)
-	local player = game.players[index]
-	if global.player_spectator_state == nil then global.player_spectator_state = {} end
-	if global.player_spectator_character == nil then global.player_spectator_character = {}  end
-	if global.player_spectator_force == nil then global.player_spectator_force = {} end
-	if global.player_spectator_state[index] then
-		--remove spectator mode
-		if player.character == nil and global.player_spectator_character[index] ~= nil then
-			local pos = player.position
-			player.set_controller{type=defines.controllers.character, character=global.player_spectator_character[index]}
-			player.teleport(pos)
-		end
-		global.player_spectator_state[index] = false
-		player.force = game.forces[global.player_spectator_force[index].name]
-		player.print("Summoning your character")
-	else
-		--put player in spectator mode
-		if player.surface.name == "Lobby" then
-			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
-		end
-		if player.character then
-			global.player_spectator_character[index] = player.character
-			global.player_spectator_force[index] = player.force
-			player.set_controller{type = defines.controllers.ghost}
-		end
-		player.force = game.forces["Spectators"]
-		global.player_spectator_state[index] = true
-		player.print("You are now a spectator")
-	end
-end
-
--- before a player dies clears cursor so can be added to their grave.
-script.on_event(defines.events.on_pre_player_died, function(event)
-	local player = game.players[event.player_index]
-	player.clean_cursor()
-end)
-
 -- updates the player count gui for total players joined each force, and players online for each force.
 function update_count()
   local sparta_status = "Sparta("..global.sparta_count..")"
@@ -614,12 +530,6 @@ function update_count()
 		p.gui.left.persons.troy.caption = troy_status
     end
   end
-end
-
---Special command for communicating through our custom web-gui
-function server_message(user, message)
-    print("[WEB] "..user..": "..message)
-    game.print("[WEB] "..user..": "..message)
 end
 
 function show_update_score()
