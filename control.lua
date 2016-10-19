@@ -679,6 +679,8 @@ end)
 
 -- updates the player count gui for total players joined each force, and players online for each force.
 function update_count()
+  local orange_status = "orange("..global.orange_count..")"
+  local purple_status = "purple("..global.purple_count..")"
   for k,p in pairs(game.players) do
     if p.gui.left.persons == nil then
 		local frame = p.gui.left.add{name="persons",type="frame",direction="horizontal",caption="Players"}
