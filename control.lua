@@ -9,13 +9,14 @@ require "locale/utils/admin"
 require "locale/utils/undecorator"
 require "server"
 require "technologies"
+require "win"
 
 --Starting Variables
-global.kill_count_purple = 0
-global.kill_count_orange = 0
+global.kill_count_troy = 0
+global.kill_count_sparta = 0
 
-global.orange_count = 0
-global.purple_count = 0
+global.sparta_count = 0
+global.troy_count = 0
 
 -- make sure base is at least 1000x1000
 global.base_min_separation = 700
@@ -25,13 +26,18 @@ global.base_separation = 0
 global.base_rotation = 0
 
 global.spawn_size = 90
+
 -- controls how much slower you run as you lose health
 global.crippling_factor = 1
 
+--area found for destoying biters around team spawn
 d = 32*3
 bd = d*3
-global.orange_color = {b = 0, r= 0.8, g = 0.4, a = 0.8}
-global.purple_color = {b = 0.8, r= 0.4, g = 0, a = 0.8}
+
+--global team colors
+global.sparta_color = {b = 0, r= 0.9, g = 0.4, a = 0.8}
+global.troy_color = {r = 0.1,b = 0.4,g = 1}
+
 
 normal_attack_sent_event = script.generate_event_name()
 landing_attack_sent_event = script.generate_event_name()
@@ -70,15 +76,15 @@ script.on_init(function()
   global.base_separation = math.random(global.base_min_separation,global.base_max_separation)/2
   global.base_rotation = math.random(0,math.pi*2)
   
-  global.purple_team_x = global.base_separation*math.cos(global.base_rotation)
-  global.purple_team_y = global.base_separation*math.sin(global.base_rotation)
-  global.purple_team_position ={ global.purple_team_x, global.purple_team_y}
-  global.purple_team_area = {{ global.purple_team_x - d,  global.purple_team_y - d},{ global.purple_team_x + d,  global.purple_team_y + d}}
+  global.troy_team_x = global.base_separation*math.cos(global.base_rotation)
+  global.troy_team_y = global.base_separation*math.sin(global.base_rotation)
+  global.troy_team_position ={ global.troy_team_x, global.troy_team_y}
+  global.troy_team_area = {{ global.troy_team_x - d,  global.troy_team_y - d},{ global.troy_team_x + d,  global.troy_team_y + d}}
   
-  global.orange_team_x = global.base_separation*math.cos(math.pi + global.base_rotation)
-  global.orange_team_y = global.base_separation*math.sin(math.pi + global.base_rotation)
-  global.orange_team_position = { global.orange_team_x, global.orange_team_y}
-  global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
+  global.sparta_team_x = global.base_separation*math.cos(math.pi + global.base_rotation)
+  global.sparta_team_y = global.base_separation*math.sin(math.pi + global.base_rotation)
+  global.sparta_team_position = { global.sparta_team_x, global.sparta_team_y}
+  global.sparta_team_area = {{ global.sparta_team_x - d,  global.sparta_team_y - d},{ global.sparta_team_x + d,  global.sparta_team_y + d}}
   
 	init_attack_data()
 	make_forces()
@@ -91,9 +97,8 @@ global.timer_wait = 600
 global.timer_display = 1
 
 script.on_event(defines.events.on_tick, function(event)
-	show_health()
   if game.tick % 20 == 0 then
-		color()
+		show_health()
   end
 	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 		set_spawns()
@@ -121,11 +126,11 @@ script.on_event(defines.events.on_tick, function(event)
 end)
 
 script.on_event(defines.events.on_player_created, function(event)
-	if global.orange_count == nil then
-		global.orange_count = 0
+	if global.sparta_count == nil then
+		global.sparta_count = 0
 	end
-	if global.purple_count == nil then
-		global.purple_count = 0
+	if global.troy_count == nil then
+		global.troy_count = 0
 	end
 	local player = game.players[event.player_index]
 	player.teleport({0,8},game.surfaces["Lobby"])
@@ -173,20 +178,20 @@ script.on_event(defines.events.on_gui_click, function(event)
 		end
     end
 	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "orange") then
-			if global.orange_count > global.purple_count then player.print("Too many Players on that team") return end
-				join_orange(event)
+		if (event.element.name == "sparta") then
+			if global.sparta_count > global.troy_count then player.print("Too many Players in Sparta, try Troy") return end
+				join_sparta(event)
 		end
 	end
 	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "purple") then
-			if global.purple_count > global.orange_count then player.print("Too many Players on that team") return end
-				join_purple(event)
+		if (event.element.name == "troy") then
+			if global.troy_count > global.sparta_count then player.print("Too many Players in Troy, try Sparta") return end
+				join_troy(event)
 		end
 	end
 	if player.gui.left.choose_team ~= nil then
 		if (event.element.name == "spectator") then
-			force_spectators(index)
+			join_spectators()
 		end
 		--destroy.character
 		--make controller ghost
@@ -216,11 +221,11 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 			end
 		end
 	end
-	if player.force == game.forces["Orange"] then
-		global.orange_count = global.orange_count + 1
+	if player.force == game.forces["Sparta"] then
+		global.sparta_count = global.sparta_count + 1
 	end
-	if player.force == game.forces["Purple"] then
-		global.purple_count = global.purple_count + 1
+	if player.force == game.forces["Troy"] then
+		global.troy_count = global.troy_count + 1
 	end
 	show_update_score()
 	update_count()
@@ -228,11 +233,11 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 
 script.on_event(defines.events.on_player_left_game, function(event)
 	player = game.players[event.player_index]
-	if player.force == game.forces["Orange"] then
-		global.orange_count = global.orange_count - 1
+	if player.force == game.forces["Sparta"] then
+		global.sparta_count = global.sparta_count - 1
 	end
-	if player.force == game.forces["Purple"] then
-		global.purple_count = global.purple_count - 1
+	if player.force == game.forces["Troy"] then
+		global.troy_count = global.troy_count - 1
 	end
 	update_count()
 end)
@@ -264,10 +269,10 @@ script.on_event(defines.events.on_entity_died, function(event)
 	local entity = event.entity
 
 	if entity == global.p_roboport then
-		global.drbp = entity.position orange_destroy_p()
+		global.drbp = entity.position sparta_destroy_p()
 	end
 	if entity == global.o_roboport then
-		global.drbp = entity.position purple_destroy_o()
+		global.drbp = entity.position troy_destroy_o()
 	end
 	if entity.type == "player" then
 		local pos = entity.surface.find_non_colliding_position("steel-chest", entity.position, 8, 1)
@@ -299,14 +304,14 @@ script.on_event(defines.events.on_entity_died, function(event)
 end)
 	
 script.on_event(defines.events.on_player_died, function(event)
-	if global.kill_count_purple == nil then global.kill_count_purple = 0 end
-	if global.kill_count_orange == nil then global.kill_count_orange = 0 end
+	if global.kill_count_troy == nil then global.kill_count_troy = 0 end
+	if global.kill_count_sparta == nil then global.kill_count_sparta = 0 end
 	local player = game.players[event.player_index]
-	if player.force.name == "Orange" then
-		global.kill_count_purple = global.kill_count_purple + 1  
+	if player.force.name == "Sparta" then
+		global.kill_count_troy = global.kill_count_troy + 1  
 	end	
-	if player.force.name == "Purple" then
-		global.kill_count_orange = global.kill_count_orange + 1
+	if player.force.name == "Troy" then
+		global.kill_count_sparta = global.kill_count_sparta + 1
 	end
 	show_update_score()
 end)
@@ -314,41 +319,41 @@ end)
 function make_forces()
 	local s = game.surfaces["nauvis"]
 	--chart the area so the game can coppy the recourses 
-	game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
-	game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
-	game.create_force("Purple")
-	game.create_force("Orange")
+	game.forces["player"].chart(s,{{ global.troy_team_x - bd,  global.troy_team_y -bd}, { global.troy_team_x + bd,  global.troy_team_y + bd}} )
+	game.forces["player"].chart(s,{{ global.sparta_team_x - bd,  global.sparta_team_y -bd}, { global.sparta_team_x + bd,  global.sparta_team_y + bd}} )
+	game.create_force("Troy")
+	game.create_force("Sparta")
 	game.create_force("Spectators")
 end
 
 function set_spawns()
 	s = game.surfaces["nauvis"]
-	purple = game.forces["Purple"]
-	orange = game.forces["Orange"]
-	ppnc = s.find_non_colliding_position("player",  global.purple_team_position, 32,2)
-	opnc = s.find_non_colliding_position("player",  global.orange_team_position, 32,2)
+	troy = game.forces["Troy"]
+	sparta = game.forces["Sparta"]
+	ppnc = s.find_non_colliding_position("player",  global.troy_team_position, 32,2)
+	opnc = s.find_non_colliding_position("player",  global.sparta_team_position, 32,2)
 
 	if ppnc ~= nil and opnc ~= nil then
-		purple.set_spawn_position({ppnc.x,ppnc.y}, s)
+		troy.set_spawn_position({ppnc.x,ppnc.y}, s)
 		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size/2,ppnc.y-global.spawn_size/2},{ppnc.x+global.spawn_size/2,ppnc.y+global.spawn_size/2}}) do object.destroy() end
-		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = purple}
+		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = troy}
 		global.p_roboport.minable = false
 		global.p_roboport.insert{name = "construction-robot", count = 10}
 		global.p_roboport.insert{name = "repair-pack", count = 20}
-		global.p_roboport.backer_name = "Purple"
-		p_turret = s.create_entity{name = "gun-turret", position = {ppnc.x,ppnc.y-5}, force = purple}
+		global.p_roboport.backer_name = "Troy"
+		p_turret = s.create_entity{name = "gun-turret", position = {ppnc.x,ppnc.y-5}, force = troy}
 		p_turret.minable = false
 		p_turret.destructible = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
     
-		orange.set_spawn_position({opnc.x,opnc.y}, s)
+		sparta.set_spawn_position({opnc.x,opnc.y}, s)
 		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size/2,opnc.y-global.spawn_size/2},{opnc.x+global.spawn_size/2,opnc.y+global.spawn_size/2}}) do object.destroy() end
-		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = orange}
+		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = sparta}
 		global.o_roboport.minable = false
 		global.o_roboport.insert{name = "construction-robot", count = 10}
 		global.o_roboport.insert{name = "repair-pack", count = 20}
-		global.o_roboport.backer_name = "Orange"
-		o_turret = s.create_entity{name = "gun-turret", position = {opnc.x,opnc.y-5}, force = orange}
+		global.o_roboport.backer_name = "Sparta"
+		o_turret = s.create_entity{name = "gun-turret", position = {opnc.x,opnc.y-5}, force = sparta}
 		o_turret.minable = false
 		o_turret.destructible = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
@@ -380,44 +385,44 @@ function set_starting_areas()
   
   for x=-global.spawn_size,global.spawn_size,1 do
     for y=-global.spawn_size,global.spawn_size,1 do
-      local tile = s.get_tile(global.purple_team_x+x,global.purple_team_y+y)
+      local tile = s.get_tile(global.troy_team_x+x,global.troy_team_y+y)
       if (tile.name == "water" or tile.name == "deepwater") then
-        s.set_tiles{{name = "grass", position = { global.purple_team_x+x,global.purple_team_y+y}}}  
+        s.set_tiles{{name = "grass", position = { global.troy_team_x+x,global.troy_team_y+y}}}  
       end
-      tile = s.get_tile(global.orange_team_x+x,global.orange_team_y+y)
+      tile = s.get_tile(global.sparta_team_x+x,global.sparta_team_y+y)
       if (tile.name == "water" or tile.name == "deepwater") then
-        s.set_tiles{{name = "grass", position = { global.orange_team_x+x,global.orange_team_y+y}}} 
+        s.set_tiles{{name = "grass", position = { global.sparta_team_x+x,global.sparta_team_y+y}}} 
       end
     end
   end
   
 	s.set_tiles{
-    		{name = "water", position ={ global.purple_team_x + 16,  global.purple_team_y +16}},
-    		{name = "water", position ={ global.purple_team_x + 17,  global.purple_team_y +16}},
-    		{name = "water", position ={ global.purple_team_x + 16,  global.purple_team_y +17}},
-    		{name = "water", position ={ global.purple_team_x + 17,  global.purple_team_y +17}}
+    		{name = "water", position ={ global.troy_team_x + 16,  global.troy_team_y +16}},
+    		{name = "water", position ={ global.troy_team_x + 17,  global.troy_team_y +16}},
+    		{name = "water", position ={ global.troy_team_x + 16,  global.troy_team_y +17}},
+    		{name = "water", position ={ global.troy_team_x + 17,  global.troy_team_y +17}}
 	}
         
 	s.set_tiles{
-    		{name = "water", position = { global.orange_team_x + 16, global.orange_team_y +16}},
-    		{name = "water", position = { global.orange_team_x + 17, global.orange_team_y +16}},
-    		{name = "water", position = { global.orange_team_x + 16, global.orange_team_y +17}},
-    		{name = "water", position = { global.orange_team_x + 17, global.orange_team_y +17}}
+    		{name = "water", position = { global.sparta_team_x + 16, global.sparta_team_y +16}},
+    		{name = "water", position = { global.sparta_team_x + 17, global.sparta_team_y +16}},
+    		{name = "water", position = { global.sparta_team_x + 16, global.sparta_team_y +17}},
+    		{name = "water", position = { global.sparta_team_x + 17, global.sparta_team_y +17}}
 	}
 
-	for k, pr in pairs (s.find_entities_filtered{area = {{ global.purple_team_x-global.spawn_size,  global.purple_team_y-global.spawn_size},{ global.purple_team_x+global.spawn_size,  global.purple_team_y+global.spawn_size}}, type= "resource"}) do
+	for k, pr in pairs (s.find_entities_filtered{area = {{ global.troy_team_x-global.spawn_size,  global.troy_team_y-global.spawn_size},{ global.troy_team_x+global.spawn_size,  global.troy_team_y+global.spawn_size}}, type= "resource"}) do
 		pr.destroy()
 	end
   
-	for k, orr in pairs (s.find_entities_filtered{area = {{ global.orange_team_x-global.spawn_size, global.orange_team_y-global.spawn_size}, { global.orange_team_x+global.spawn_size, global.orange_team_y+global.spawn_size}}, type= "resource"}) do
+	for k, orr in pairs (s.find_entities_filtered{area = {{ global.sparta_team_x-global.spawn_size, global.sparta_team_y-global.spawn_size}, { global.sparta_team_x+global.spawn_size, global.sparta_team_y+global.spawn_size}}, type= "resource"}) do
 		orr.destroy()
 	end
   
 	for k, r in pairs (s.find_entities_filtered{area = {{-global.spawn_size, -global.spawn_size}, {global.spawn_size, global.spawn_size}}, type= "resource"}) do
 		local prx = r.position.x
 		local pry = r.position.y
-		local prx = prx +  global.purple_team_x
-		local pry = pry +  global.purple_team_y
+		local prx = prx +  global.troy_team_x
+		local pry = pry +  global.troy_team_y
 		local tile = s.get_tile(prx,pry).name
     
 		if tile ~= "water" and tile ~= "deepwater" then
@@ -426,8 +431,8 @@ function set_starting_areas()
       
 		local nrx = r.position.x
 		local nry = r.position.y
-		local nrx = nrx +  global.orange_team_x
-		local nry = nry +  global.orange_team_y
+		local nrx = nrx +  global.sparta_team_x
+		local nry = nry +  global.sparta_team_y
 		local tile = s.get_tile(nrx,nry).name
       
 		if tile ~= "water" and tile ~= "deepwater" then 
@@ -439,120 +444,15 @@ end
 function make_team_option(player)
 	if player.gui.left.choose_team == nil then
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
-		frame.add{type = "button", caption = "Join Orange Team", name = "orange"}.style.font_color = global.orange_color
-        	frame.add{type = "button", caption = "Join Purple Team", name = "purple"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
-		if player.admin == true then
-			frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r = 0.1,b = 0.4,g = 1}
+		frame.add{type = "button", caption = "Join Sparta", name = "sparta"}.style.font_color = global.sparta_color
+        	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
+			frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
 		end
 	end
 end
 
-function purple_destroy_o()
-	surface = game.surfaces["nauvis"]
-	global.kill_count_purple = global.kill_count_purple + 40
-	show_update_score()
-	
-	for k, p in pairs (game.players) do
-		p.print("Orange teams Roboport has been destroyed")
-		p.print("Purple was Awarded 40 Points")	
-	end
-	script.on_event(defines.events.on_tick, kill_orange)
-	global.ending_tick = game.tick + 300
-end
-
-function orange_destroy_p()
-	surface = game.surfaces["nauvis"]
-	global.kill_count_orange = global.kill_count_orange + 40
-	show_update_score()
-	
-	for k, p in pairs (game.players) do
-		p.print("Purple teams Roboport has been destroyed")
-		p.print("Orange was Awarded 40 Points")
-	end
-
-	script.on_event(defines.events.on_tick, kill_purple)
-	global.ending_tick = game.tick + 300
-end
-
--- if the Orange roboport is destroyed, spawn a series of explosions.
-function kill_orange()
-	local s = game.surfaces["nauvis"]
-	local drx = global.drbp.x
-	local dry = global.drbp.y
-	if game.tick < global.ending_tick and game.tick % 20 == 0 then
-		s.create_entity{position = {drx + math.random(-2,2),dry + math.random(-2,2)}, name = "medium-explosion"}    
-	end
-	if game.tick == global.ending_tick then 
-		s.create_entity{position = {drx,dry}, name = "big-explosion"} 
-	end
-end
-
--- if the Purple roboport is destroyed, spawn a series of explosions.
-function kill_purple()
-	local s = game.surfaces["nauvis"]
-	local drx = global.drbp.x
-	local dry = global.drbp.y
-	if game.tick < global.ending_tick and game.tick % 20 == 0 then
-		s.create_entity{position = {drx + math.random(-2,2),dry + math.random(-2,2)}, name = "medium-explosion"}    
-	end
-	if game.tick == global.ending_tick then 
-		s.create_entity{position = {drx,dry}, name = "big-explosion"} 
-	end
-end
-
---check on tick, to see if anyone has won.
-function win()
-	if global.kill_count_purple >= 100 then
-		global.end_screen = game.tick + 180
-		script.on_event(defines.events.on_tick, purple_win) 
-	end
-	if global.kill_count_orange >= 100 then
-		global.end_screen = game.tick + 180
-		script.on_event(defines.events.on_tick, orange_win) 
-	end
-end
-
-function orange_win()
-	if game.tick == global.end_screen then 
-		for k, player in pairs (game.players) do
-			if player.force.name == "Orange" then
-				showdialog("You win :D", "Orange team has beaten the Purple team. Well done!")
-			end
-			if player.force.name == "Purple" then
-				showdialog("You lost :(", "Purple team was beaten by the Orange team. Better luck next time.")
-			end
-		end
-	end	
-end
-
-function purple_win()
-	if game.tick == global.end_screen then
-		for k, player in pairs (game.players) do
-			if player.force.name == "Purple" then
-				showdialog("You win :D", "Purple team has beaten the Orange team. Well done!")
-			end
-			if player.force.name == "Orange" then
-				showdialog("You lost :(", "Orange team was beaten by the Purple team. Better luck next time.")
-			end
-		end
-	end	
-end
-
---gui with a message, event on win.
-function showdialog(title, message)
-	if game.tick == global.end_screen then
-		for i, player in pairs(game.players) do
-			if player.gui.center.end_message == nil then
-				local frame = player.gui.center.add{type="frame", name="end_message", caption=title, direction="vertical"}
-				frame.add{type="label", caption=message}
-				frame.add{type="button", name="end_message_button", caption="Close this message"}
-			end
-		end
-	end
-end
-
--- when a player clicks the gui button to join orange.
-function join_orange(event)
+-- when a player clicks the gui button to join sparta.
+function join_sparta(event)
 	local s = game.surfaces.nauvis
 	local player = game.players[event.player_index]
    	local index = event.player_index
@@ -562,21 +462,21 @@ function join_orange(event)
             	player.set_controller{type = defines.controllers.character, character = character}
         	end
     	end
-	global.orange_count = global.orange_count + 1
-	player.teleport(game.forces["Orange"].get_spawn_position(s), game.surfaces.nauvis)
-	player.color = global.orange_color
-	player.force = game.forces["Orange"]
+	global.sparta_count = global.sparta_count + 1
+	player.teleport(game.forces["Sparta"].get_spawn_position(s), game.surfaces.nauvis)
+	player.color = global.sparta_color
+	player.force = game.forces["Sparta"]
 	player.gui.left.choose_team.destroy()
 	starting_inventory(event)
 	update_count()
-	player.print("Destroy the Purple Roboport for 40 extra points")      
+	player.print("Destroy the Troy Roboport for 40 extra points")      
 	for k, p in pairs (game.players) do
-		p.print(player.name.." has joined team Orange")
+		p.print(player.name.." of Sparta has entered the arena")
 	end
 end
 
---when a player clicks the gui button to join purple.
-function join_purple(event)
+--when a player clicks the gui button to join Troy.
+function join_troy(event)
 	local s = game.surfaces.nauvis
 	local player = game.players[event.player_index]
     	local index = event.player_index
@@ -586,16 +486,16 @@ function join_purple(event)
             		player.set_controller{type = defines.controllers.character, character = character}
         	end
     	end
-	global.purple_count = global.purple_count + 1
-	player.teleport(game.forces["Purple"].get_spawn_position(s), game.surfaces.nauvis)
-	player.color = global.purple_color
-	player.force = game.forces["Purple"]
+	global.troy_count = global.troy_count + 1
+	player.teleport(game.forces["Troy"].get_spawn_position(s), game.surfaces.nauvis)
+	player.color = global.troy_color
+	player.force = game.forces["Troy"]
 	player.gui.left.choose_team.destroy()
 	starting_inventory(event)
 	update_count()
-	player.print("Destroy the Orange Roboport for 40 extra points")
+	player.print("Destroy the Spartan Roboport for 40 extra points")
 	for k, p in pairs (game.players) do
-		p.print(player.name.." has joined team Purple")
+		p.print(player.name.." of Troy has entered the arena")
 	end
 end
 
@@ -640,6 +540,28 @@ function show_health()
     end 
 end	
 
+-- for non admins spectating without a character
+function join_spectators()
+	local player = game.players[index]
+	if global.player_spectator_state == nil then global.player_spectator_state = {} end
+	if global.player_spectator_character == nil then global.player_spectator_character = {}  end
+	if global.player_spectator_force == nil then global.player_spectator_force = {} end
+	if global.player_spectator_state[index] then
+		--put player in spectator mode
+		if player.surface.name == "Lobby" then
+			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
+		end
+		if player.character then
+			player.character.destroy()
+			global.player_spectator_force[index] = player.force
+			player.set_controller{type = defines.controllers.ghost}
+		end
+		player.force = game.forces["Spectators"]
+		global.player_spectator_state[index] = true
+		player.print("You are now a spectator")
+	end
+end	
+
 function force_spectators(index)
 	local player = game.players[index]
 	if global.player_spectator_state == nil then global.player_spectator_state = {} end
@@ -679,17 +601,17 @@ end)
 
 -- updates the player count gui for total players joined each force, and players online for each force.
 function update_count()
-  local orange_status = "orange("..global.orange_count..")"
-  local purple_status = "purple("..global.purple_count..")"
+  local sparta_status = "Sparta("..global.sparta_count..")"
+  local troy_status = "Troy("..global.troy_count..")"
   for k,p in pairs(game.players) do
     if p.gui.left.persons == nil then
 		local frame = p.gui.left.add{name="persons",type="frame",direction="horizontal",caption="Players"}
-		frame.add{type="label",name="orange",caption=orange_status}.style.font_color = global.orange_color
+		frame.add{type="label",name="sparta",caption=sparta_status}.style.font_color = global.sparta_color
 		frame.add{type="label", name="Vs", caption= "VS", style="caption_label_style"}
-		frame.add{type="label",name="purple",caption=purple_status,}.style.font_color = {b = 0.91, r = 0.5, g = 0.4, a = 1}
+		frame.add{type="label",name="troy",caption=troy_status,}.style.font_color = global.troy_color
     else
-		p.gui.left.persons.orange.caption = orange_status
-		p.gui.left.persons.purple.caption = purple_status
+		p.gui.left.persons.sparta.caption = sparta_status
+		p.gui.left.persons.troy.caption = troy_status
     end
   end
 end
@@ -701,48 +623,19 @@ function server_message(user, message)
 end
 
 function show_update_score()
-	if global.kill_count_purple == nil then global.kill_count_purple = 0 end
-	if global.kill_count_orange == nil then global.kill_count_orange = 0 end
-	if global.kill_count_orange > 0 or global.kill_count_purple > 0 then
+	if global.kill_count_troy == nil then global.kill_count_troy = 0 end
+	if global.kill_count_sparta == nil then global.kill_count_sparta = 0 end
+	if global.kill_count_sparta > 0 or global.kill_count_troy > 0 then
 		for index, player in pairs(game.players) do
 			if player.gui.left.kill_score == nil then
 				local frame = player.gui.left.add{name = "kill_score", type = "frame", direction = "horizontal", caption="Kill score"}
-				frame.add{type = "label", caption = global.kill_count_orange, name = "kill_count_orange"}.style.font_color = global.orange_color
-				frame.add{type = "label", caption = global.kill_count_purple, name = "kill_count_purple"}.style.font_color = {r = 0.5,b = 1, g = 0.1}
+				frame.add{type = "label", caption = global.kill_count_sparta, name = "kill_count_sparta"}.style.font_color = global.sparta_color
+				frame.add{type = "label", caption = global.kill_count_troy, name = "kill_count_troy"}.style.font_color = global.troy_color
 			else
-				player.gui.left.kill_score.kill_count_purple.caption = tostring(global.kill_count_purple)
-				player.gui.left.kill_score.kill_count_orange.caption = tostring(global.kill_count_orange)
+				player.gui.left.kill_score.kill_count_troy.caption = tostring(global.kill_count_troy)
+				player.gui.left.kill_score.kill_count_sparta.caption = tostring(global.kill_count_sparta)
 			end
 		end
 	end
 	win()
 end
-
-function color()
-	for _, player in pairs (game.connected_players) do
-    		local temp_r = tonumber(string.format("%." .. (1 or 0) .. "f", player.color.r))
-    		local temp_b = tonumber(string.format("%." .. (1 or 0) .. "f", player.color.b))
-    		local temp_g = tonumber(string.format("%." .. (1 or 0) .. "f", player.color.g))
-    		local temp_a = tonumber(string.format("%." .. (1 or 0) .. "f", player.color.a))
-		if player.force == game.forces["Orange"] then
-			--compare orange color
-			if temp_r ~= global.orange_color.r
-        		or temp_b ~= global.orange_color.b
-       			or temp_g ~= global.orange_color.g
-        		then
-				player.color = global.orange_color
-				player.print("Not allowed to change your color.")
-			end
-		end    
-		if player.force == game.forces["Purple"] then
-			---compare purple color
-			if temp_r ~= global.purple_color.r
-        		or temp_b ~= global.purple_color.b
-        		or temp_g ~= global.purple_color.g
-        		then
-				player.color = global.purple_color
-				player.print("Not allowed to change your color.")
-			end
-		end
-	end
-end	
