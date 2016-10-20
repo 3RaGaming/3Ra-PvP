@@ -6,9 +6,6 @@ function join_spectators(index)
 	if global.player_spectator_force == nil then global.player_spectator_force = {} end
 	if global.player_spectator_state[index] then
 		--put player in spectator mode
-		if player.surface.name == "Lobby" then
-			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
-		end
 		if player.character then
 			player.character.destroy()
 			global.player_spectator_force[index] = player.force
