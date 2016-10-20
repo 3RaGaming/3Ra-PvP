@@ -38,7 +38,7 @@ d = 32*3
 bd = d*3
 
 --global team colors
-global.sparta_color = {r= 204/256, g=  102/256, b=  0/256}
+global.sparta_color = {r= 255/256, g=  128/256, b=  0/256}
 global.troy_color = {r= 0/256, g=  255/256, b=  0/256}
 black = {r= 0/256, g=  0/256, b=  0/256}
 
@@ -90,6 +90,7 @@ script.on_init(function()
   global.sparta_team_area = {{ global.sparta_team_x - d,  global.sparta_team_y - d},{ global.sparta_team_x + d,  global.sparta_team_y + d}}
   
 	init_attack_data()
+	make_lobby()
 	make_forces()
 end)
 
@@ -99,8 +100,9 @@ global.timer_wait = 600
 global.timer_display = 1
 
 script.on_event(defines.events.on_tick, function(event)
-  if game.tick % 20 == 0 then
+  if(game.tick % 30 == 0) then
 		show_health()
+		color()
   end
 	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 		set_spawns()
@@ -155,20 +157,13 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 	end
 	
 	local player = game.players[event.player_index]
+	player.teleport({0,8},game.surfaces["Lobby"])
 	player.print({"msg-intro1"})
 	player.print({"msg-intro2"})
 	
-	if player.force ~= game.forces["Sparta"] or game.forces["Troy"] then
-		if player.character then
-			player.character.destroy()
-			player.force = game.forces["Spectators"]
-			player.set_controller{type = defines.controllers.ghost}
-		end
-	end
-	
 	if game.tick > 50*60 then    ------------*************vvvvvvthese have to match**********----------
 		make_team_option(player)
-		game.player.force["Spectators"].chart_all()
+		game.player.forces["Spectators"].chart_all()
 	else 
 		player.print({"msg-intro3"})
 	end
@@ -232,6 +227,12 @@ script.on_event(defines.events.on_player_died, function(event)
 	end
 	show_update_score()
 end)
+
+function make_lobby()
+	game.print("lobby")
+	game.create_surface("Lobby", {width = 96, height = 32, starting_area = "big", water = "none"}) 
+end
+
 
 function make_forces()
 	local s = game.surfaces["nauvis"]
@@ -425,7 +426,9 @@ function show_health()
 				if global.player_health[index] ~= health then
 					global.player_health[index] = health
 					-- slows the player just slightly if not at full health
-					player.character_running_speed_modifier = -.1*(100-health)*global.crippling_factor/100
+					if global.player_crouch_state == false then
+						player.character_running_speed_modifier = -.1*(100-health)*global.crippling_factor/100
+					end
 					-- prints player health when < 80%
 					if health < 80 then
 						if health > 50 then
@@ -476,3 +479,18 @@ function show_update_score()
 	end
 	win()
 end
+
+function color()
+	for k, player in pairs(game.players) do
+		if global.player_crouch_state == true then return end
+		if player.force == game.forces["Troy"] then
+			if player.color ~= global.troy_color then
+				player.color = global.troy_color
+			end
+		elseif 	player.force == game.forces["Sparta"] then
+			if player.color ~= global.sparta_color then
+				player.color = global.sparta_color
+			end
+		end
+	end	
+end		

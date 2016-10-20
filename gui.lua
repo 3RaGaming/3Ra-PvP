@@ -38,7 +38,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 			global.player_crouch_state = false
 		else 
 			global.player_crouch_state = true
-			player.character_running_speed_modifier = -0.5
+			player.character_running_speed_modifier = -0.6
 			player.color = black				
 		end
 	end
@@ -60,6 +60,12 @@ script.on_event(defines.events.on_gui_click, function(event)
 				join_troy(event)
 		end
 	end
+	if player.gui.left.choose_team ~= nil then
+		if (event.element.name == "spectator") then
+			join_spectators(index)
+			player.gui.left.choose_team.spectator.destroy()
+		end
+	end	
     if player.gui.left.spectate ~= nil then
         if element ~= nil then
             if element == "spectate" then
@@ -72,6 +78,7 @@ end)
 function make_team_option(player)
 	if player.gui.left.choose_team == nil then
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
+		frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r= 0/256, g=  255/256, b=  255/256}
 		frame.add{type = "button", caption = "Join Sparta", name = "sparta"}.style.font_color = global.sparta_color
        	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
 	end
