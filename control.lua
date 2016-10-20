@@ -613,14 +613,6 @@ function update_count()
     end
 end
 
---this is for a server to monotor chat and print chat in game from a web page.(@StudMuffin/Discord)
-function server_message(user, message)
-    print("[WEB] ", user, ": ", message)
-    for _, p in pairs(game.connected_players) do
-        p.print("[WEB] ", user, ": ", message)
-    end
-end
-
 function show_update_score()
     if global.kill_count_purple == nil then global.kill_count_purple = 0 end
     if global.kill_count_orange == nil then global.kill_count_orange = 0 end
