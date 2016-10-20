@@ -12,6 +12,7 @@ require "technologies"
 require "win"
 require "spectators"
 require "gravestone"
+require "gui"
 
 --Starting Variables
 global.kill_count_troy = 0
@@ -37,9 +38,9 @@ d = 32*3
 bd = d*3
 
 --global team colors
-global.sparta_color = {b = 0, r= 0.9, g = 0.4, a = 0.8}
-global.troy_color = {r = 0.1,b = 0.4,g = 1}
-
+global.sparta_color = {r= 204/256, g=  102/256, b=  0/256}
+global.troy_color = {r= 0/256, g=  255/256, b=  0/256}
+black = {r= 0/256, g=  0/256, b=  0/256}
 
 normal_attack_sent_event = script.generate_event_name()
 landing_attack_sent_event = script.generate_event_name()
@@ -90,7 +91,6 @@ script.on_init(function()
   
 	init_attack_data()
 	make_forces()
-	make_lobby()
 end)
 
 --global variables for the message desplay
@@ -127,111 +127,52 @@ script.on_event(defines.events.on_tick, function(event)
 	end
 end)
 
-script.on_event(defines.events.on_player_created, function(event)
+script.on_event(defines.events.on_player_joined_game, function(event)
+	local player = game.players[event.player_index]
+	if player.admin == true then
+		if game.tick > 60 then
+			for k, p in pairs (game.players) do
+				p.print("Hail Admin "..player.name)
+			end
+		end
+	end	
+	if player.force == game.forces["Sparta"] then
+		global.sparta_count = global.sparta_count + 1
+	elseif player.force == game.forces["Troy"] then
+		global.troy_count = global.troy_count + 1
+	end
+	create_buttons(event)
+	show_update_score()
+	update_count()
+ end)
+ 
+ script.on_event(defines.events.on_player_created, function(event)
 	if global.sparta_count == nil then
 		global.sparta_count = 0
 	end
 	if global.troy_count == nil then
 		global.troy_count = 0
 	end
+	
 	local player = game.players[event.player_index]
-	player.teleport({0,8},game.surfaces["Lobby"])
 	player.print({"msg-intro1"})
 	player.print({"msg-intro2"})
- 
+	
+	if player.force ~= game.forces["Sparta"] or game.forces["Troy"] then
+		if player.character then
+			player.character.destroy()
+			player.force = game.forces["Spectators"]
+			player.set_controller{type = defines.controllers.ghost}
+		end
+	end
+	
 	if game.tick > 50*60 then    ------------*************vvvvvvthese have to match**********----------
 		make_team_option(player)
+		game.player.force["Spectators"].chart_all()
 	else 
 		player.print({"msg-intro3"})
 	end
 end)
-
-script.on_event(defines.events.on_gui_click, function(event)
-	local s = game.surfaces.nauvis
-	local player = game.players[event.player_index]
-    local index = event.player_index
-    local element = event.element.name
-		
-	if player.gui.top.flashlight == nil then
-        if element ~= nil then
-            if element == "flashlight" then
-                if player.character == nil then return end
-                if global.player_flashlight_state == nil then
-                    global.player_flashlight_state = {}
-                end
-                
-                if global.player_flashlight_state[event.player_index] == nil then
-                    global.player_flashlight_state[event.player_index] = true
-                end
-    
-                if global.player_flashlight_state[event.player_index] then
-                    global.player_flashlight_state[event.player_index] = false
-                    player.character.disable_flashlight()
-                else
-                    global.player_flashlight_state[event.player_index] = true
-                    player.character.enable_flashlight()
-                end
-            end
-        end
-	end	
-	if player.gui.center.end_message ~= nil then
-		if (event.element.name == "end_message_button") then
-			player.gui.center.end_message.destroy()
-		end
-    end
-	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "sparta") then
-			if global.sparta_count > global.troy_count then player.print("Too many Players in Sparta, try Troy") return end
-				join_sparta(event)
-		end
-	end
-	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "troy") then
-			if global.troy_count > global.sparta_count then player.print("Too many Players in Troy, try Sparta") return end
-				join_troy(event)
-		end
-	end
-	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "spectator") then
-			join_spectators(index)
-		end
-		--destroy.character
-		--make controller ghost
-	end
-    if player.gui.left.spectate ~= nil then
-        if element ~= nil then
-            if element == "spectate" then
-                force_spectators(index)
-            end
-        end
-    end
-end)
-
-script.on_event(defines.events.on_player_joined_game, function(event)
-	local player = game.players[event.player_index]
-    if player.gui.left.flashlight == nil then
-        local frame = player.gui.left.add{name = "flashlight", type = "button", direction = "horizontal", caption = "flashlight"}
-    end
-	
-	if player.admin == true then
-        if player.gui.left.spectate == nil then
-            local adminframe = player.gui.left.add{name = "spectate", type = "button", direction = "horizontal", caption = "spectate"}
-        end
-		if game.tick > 60 then
-			for k, p in pairs (game.players) do
-				p.print("All Hail Admin "..player.name)
-			end
-		end
-	end
-	if player.force == game.forces["Sparta"] then
-		global.sparta_count = global.sparta_count + 1
-	end
-	if player.force == game.forces["Troy"] then
-		global.troy_count = global.troy_count + 1
-	end
-	show_update_score()
-	update_count()
- end)
 
 script.on_event(defines.events.on_player_left_game, function(event)
 	player = game.players[event.player_index]
@@ -351,11 +292,6 @@ function set_spawns()
 	end
 end
 
-function make_lobby()
-	game.print("lobby")
-	game.create_surface("Lobby", {width = 96, height = 32, starting_area = "big", water = "none"}) 
-end
-
 function set_starting_areas()
 	local s = game.surfaces.nauvis
   
@@ -414,15 +350,6 @@ function set_starting_areas()
 		if tile ~= "water" and tile ~= "deepwater" then 
 			s.create_entity{name = r.name, position = {nrx,nry}, force = r.force, amount = r.amount}
 		end
-	end
-end
-
-function make_team_option(player)
-	if player.gui.left.choose_team == nil then
-		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
-		frame.add{type = "button", caption = "Join Sparta", name = "sparta"}.style.font_color = global.sparta_color
-       	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
-		frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
 	end
 end
 
