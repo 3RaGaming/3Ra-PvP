@@ -54,18 +54,13 @@ end
 
 --check on tick, to see if anyone has won.
 function win()
-    --keep win_complete a lua global, so new players joining will see the message on join... maybe
-    if not win_complete then
-        if global.kill_count_troy >= 100 then
-            global.end_screen = game.tick + 180
-            Event.register(defines.events.on_tick, troy_win)
-            win_complete = true
-        end
-        if global.kill_count_sparta >= 100 then
-            global.end_screen = game.tick + 180
-            Event.register(defines.events.on_tick, sparta_win)
-            win_complete = true
-        end
+    if global.kill_count_troy >= 100 then
+        global.end_screen = game.tick + 180
+        Event.register(defines.events.on_tick, troy_win)
+    end
+    if global.kill_count_sparta >= 100 then
+        global.end_screen = game.tick + 180
+        Event.register(defines.events.on_tick, sparta_win)
     end
 end
 
@@ -79,12 +74,13 @@ function sparta_win()
 				showdialog("You lost :(", "Troy was defeated by the Sparta. Better luck next time.")
 			end
 		end
-	end	
+	end
+    return
 end
 
 function troy_win()
 	if game.tick == global.end_screen then
-		for k, player in pairs (game.players) do
+		for k, player in pairs (game.connected_players) do
 			if player.force.name == "Troy" then
 				showdialog("You win :D", "Troy has defeated the Sparta. Well done!")
 			end
@@ -92,18 +88,15 @@ function troy_win()
 				showdialog("You lost :(", "Sparta was defeated by the Troy. Better luck next time.")
 			end
 		end
-	end	
+	end
+    return
 end
 
 --gui with a message, event on win.
 function showdialog(title, message)
-	if game.tick == global.end_screen then
-		for i, player in pairs(game.players) do
-			if player.gui.center.end_message == nil then
-				local frame = player.gui.center.add{type="frame", name="end_message", caption=title, direction="vertical"}
-				frame.add{type="label", caption=message}
-				frame.add{type="button", name="end_message_button", caption="Close this message"}
-			end
-		end
+	if player.gui.center.end_message == nil then
+		local frame = player.gui.center.add{type="frame", name="end_message", caption=title, direction="vertical"}
+		frame.add{type="label", caption=message}
+		frame.add{type="button", name="end_message_button", caption="Close this message"}
 	end
 end
