@@ -110,6 +110,8 @@ Event.register(defines.events.on_tick, function(event)
 	end	
 	-- Runs every 30 seconds
 	if(game.tick % 1800 == 0) then
+		if not game.forces["Spectators"] then game.create_force("Spectators") end
+		game.forces.Spectators.chart_all()
 		protection()
 	end	
 	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
@@ -384,8 +386,13 @@ function join_a_team(event, joining, opposing)
 	local p = game.players[event.player_index]
 	if p.character == nil then
         if p.connected then
-           	local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = joining}
-        	p.set_controller{type = defines.controllers.character, character = character}
+			if p.admin and global.player_spectator_state[p.index] then
+				global.player_spectator_force[p.index] = game.forces[joining]
+				force_spectators(p.index)
+			else
+				local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = joining}
+				p.set_controller{type = defines.controllers.character, character = character}
+			end
     	end
 	end
 	p.teleport(game.forces[joining].get_spawn_position(s), game.surfaces.nauvis)
@@ -394,49 +401,7 @@ function join_a_team(event, joining, opposing)
 	starting_inventory(event)
 	update_count(p)
 	p.print("Destroy the "..opposing.." Roboport for 40 extra points")      
-	game.print(p.name.." of "..joining.." has entered the arena")
-end
-
--- when a player clicks the gui button to join sparta.
-function join_sparta(event)
-	local s = game.surfaces.nauvis
-	local p = game.players[event.player_index]
-	if p.character == nil then
-		p.force = game.forces["Sparta"]
-        if p.connected then
-           	local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = "Sparta"}
-        	p.set_controller{type = defines.controllers.character, character = character}
-    	end
-	end
-	global.sparta_count = global.sparta_count + 1
-	p.teleport(game.forces["Sparta"].get_spawn_position(s), game.surfaces.nauvis)
-	p.color = global.sparta_color
-	p.gui.left.choose_team.destroy()
-	starting_inventory(event)
-	update_count()
-	p.print("Destroy the Troy Roboport for 40 extra points")      
-	game.print(player.name.." of Sparta has entered the arena")
-end
-
---when a player clicks the gui button to join Troy.
-function join_troy(event)
-	local s = game.surfaces.nauvis
-	local p = game.players[event.player_index]
-	if p.character == nil then
-		p.force = game.forces["Troy"]
-        if p.connected then
-           	local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = "Troy"}
-        	p.set_controller{type = defines.controllers.character, character = character}
-    	end
-	end
-	global.troy_count = global.troy_count + 1
-	p.color = global.troy_color
-	p.teleport(game.forces["Troy"].get_spawn_position(s), game.surfaces.nauvis)
-	p.gui.left.choose_team.destroy()
-	starting_inventory(event)
-	update_count()
-	p.print("Destroy the Spartan Roboport for 40 extra points")
-	game.print(player.name..", of Troy, has entered the arena")
+	game.print(p.name..", of "..joining..", has entered the arena")
 end
 
 function starting_inventory(event)

@@ -61,14 +61,19 @@ script.on_event(defines.events.on_gui_click, function(event)
 	end
 	if player.gui.left.choose_team ~= nil then
 		if (event.element.name == "spectator") then
-			join_spectators(index)
+			force_spectators(index)
 			player.gui.left.choose_team.spectator.destroy()
 		end
 	end	
     if player.gui.left.spectate ~= nil then
         if element ~= nil then
             if element == "spectate" then
-                force_spectators(index)
+                if player.admin then
+                    force_spectators(index)
+                else
+                    player.print("You are no longer an admin")
+                    player.gui.left.spectate.destroy()
+                end
             end
         end
     end
