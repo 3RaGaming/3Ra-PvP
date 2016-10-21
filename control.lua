@@ -99,7 +99,7 @@ global.timer_value = 0
 global.timer_wait = 600
 global.timer_display = 1
 
-script.on_event(defines.events.on_tick, function(event)
+Event.register(defines.events.on_tick, function(event)
 	--runs every 500ms
 	if(game.tick % 30 == 0) then
 		show_health()
@@ -137,15 +137,13 @@ script.on_event(defines.events.on_tick, function(event)
 	end
 end)
 
-script.on_event(defines.events.on_player_joined_game, function(event)
+Event.register(defines.events.on_player_joined_game, function(event)
 	local player = game.players[event.player_index]
 	if player.admin == true then
 		if game.tick > 60 then
-			for k, p in pairs (game.players) do
-				p.print("Hail Admin "..player.name)
-			end
+			game.print("Hail Admin "..player.name)
 		end
-	end	
+	end
 	if player.force == game.forces["Sparta"] then
 		global.sparta_count = global.sparta_count + 1
 	elseif player.force == game.forces["Troy"] then
@@ -156,7 +154,7 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 	update_count()
  end)
  
- script.on_event(defines.events.on_player_created, function(event)
+Event.register(defines.events.on_player_created, function(event)
 	if global.sparta_count == nil then
 		global.sparta_count = 0
 	end
@@ -176,7 +174,7 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 	end
 end)
 
-script.on_event(defines.events.on_player_left_game, function(event)
+Event.register(defines.events.on_player_left_game, function(event)
 	player = game.players[event.player_index]
 	if player.force == game.forces["Sparta"] then
 		global.sparta_count = global.sparta_count - 1
@@ -187,7 +185,7 @@ script.on_event(defines.events.on_player_left_game, function(event)
 	update_count()
 end)
  
-script.on_event(defines.events.on_player_respawned, function(event)
+Event.register(defines.events.on_player_respawned, function(event)
 	local player = game.players[event.player_index]
 	player.insert{name="submachine-gun", count=1}
 	player.insert{name="firearm-magazine", count=10}
@@ -209,7 +207,7 @@ script.on_configuration_changed(function(data)
 	end
 end)
 
-script.on_event(defines.events.on_entity_died, function(event)
+Event.register(defines.events.on_entity_died, function(event)
 	local entity = event.entity
 	local force = event.force
 	local s = game.surfaces["nauvis"]
@@ -242,8 +240,7 @@ script.on_event(defines.events.on_entity_died, function(event)
 	end
 end)
 	
-script.on_event(defines.events.on_player_died, function(event)
-	gravestone(event)
+Event.register(defines.events.on_player_died, function(event)
 	if global.kill_count_troy == nil then global.kill_count_troy = 0 end
 	if global.kill_count_sparta == nil then global.kill_count_sparta = 0 end
 	local player = game.players[event.player_index]
@@ -384,54 +381,47 @@ end
 -- when a player clicks the gui button to join sparta.
 function join_sparta(event)
 	local s = game.surfaces.nauvis
-	local player = game.players[event.player_index]
-   	local index = event.player_index
-	if player.character == nil then
-        	if player.connected then
-            	local character = player.surface.create_entity{name = "player", position = player.surface.find_non_colliding_position("player", player.force.get_spawn_position(player.surface), 10, 2), force = force}
-            	player.set_controller{type = defines.controllers.character, character = character}
-        	end
+	local p = game.players[event.player_index]
+	if p.character == nil then
+		p.force = game.forces["Sparta"]
+        if p.connected then
+           	local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = "Sparta"}
+        	p.set_controller{type = defines.controllers.character, character = character}
     	end
+	end
 	global.sparta_count = global.sparta_count + 1
-	player.teleport(game.forces["Sparta"].get_spawn_position(s), game.surfaces.nauvis)
-	player.color = global.sparta_color
-	player.force = game.forces["Sparta"]
-	player.gui.left.choose_team.destroy()
+	p.teleport(game.forces["Sparta"].get_spawn_position(s), game.surfaces.nauvis)
+	p.color = global.sparta_color
+	p.gui.left.choose_team.destroy()
 	starting_inventory(event)
 	update_count()
-	player.print("Destroy the Troy Roboport for 40 extra points")      
-	for k, p in pairs (game.players) do
-		p.print(player.name.." of Sparta has entered the arena")
-	end
+	p.print("Destroy the Troy Roboport for 40 extra points")      
+	game.print(player.name.." of Sparta has entered the arena")
 end
 
 --when a player clicks the gui button to join Troy.
 function join_troy(event)
 	local s = game.surfaces.nauvis
-	local player = game.players[event.player_index]
-    	local index = event.player_index
-	if player.character == nil then
-        	if player.connected then
-            		local character = player.surface.create_entity{name = "player", position = player.surface.find_non_colliding_position("player", player.force.get_spawn_position(player.surface), 10, 2), force = force}
-            		player.set_controller{type = defines.controllers.character, character = character}
-        	end
+	local p = game.players[event.player_index]
+	if p.character == nil then
+		p.force = game.forces["Troy"]
+        if p.connected then
+           	local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = "Troy}
+        	p.set_controller{type = defines.controllers.character, character = character}
     	end
+	end
 	global.troy_count = global.troy_count + 1
-	player.teleport(game.forces["Troy"].get_spawn_position(s), game.surfaces.nauvis)
-	player.color = global.troy_color
-	player.force = game.forces["Troy"]
-	player.gui.left.choose_team.destroy()
+	p.color = global.troy_color
+	p.teleport(game.forces["Troy"].get_spawn_position(s), game.surfaces.nauvis)
+	p.gui.left.choose_team.destroy()
 	starting_inventory(event)
 	update_count()
-	player.print("Destroy the Spartan Roboport for 40 extra points")
-	for k, p in pairs (game.players) do
-		p.print(player.name.." of Troy has entered the arena")
-	end
+	p.print("Destroy the Spartan Roboport for 40 extra points")
+	game.print(player.name..", of Troy, has entered the arena")
 end
 
 function starting_inventory(event)
 	local player = game.players[event.player_index]
-    	local index = event.player_index
 	player.insert{name="iron-plate", count=8}
 	player.insert{name="submachine-gun", count=1}
 	player.insert{name="piercing-rounds-magazine", count=100}
@@ -474,13 +464,20 @@ end
 
 --if no one is online on either team set roboports as not destructible (not working)
 function protection()
-	if global.o_roboport or global.p_roboport == nil then return end
 	if global.sparta_count or global.troy_count == 0 then
-		global.o_roboport.destructible = false
-		global.p_roboport.destructible = false
+		if global.sparta_roboport ~= nil then
+			global.sparta_roboport.destructible = false
+		end
+		if global.sparta_roboport ~= nil then
+			global.sparta_roboport.destructible = false
+		end
 	else
-		global.o_roboport.destructible = true
-		global.o_roboport.destructible = true
+		if global.troy_roboport ~= nil then
+			global.troy_roboport.destructible = true
+		end
+		if global.troy_roboport ~= nil then
+			global.troy_roboport.destructible = true
+		end
 	end
 end	
 

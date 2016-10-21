@@ -55,7 +55,7 @@ script.on_event(defines.events.on_pre_player_died, function(event)
 end)
 
 
-function gravestone(event)
+function on_player_died(event)
 	local player = game.players[event.player_index]
 	if player ~= nil then
 		local transfered = 0	
@@ -211,20 +211,13 @@ function gravestone(event)
 								end
 							end
 						end --[[ end for #toolbar ]]--
+							     
 					end
 				end
-				local message = "No  craft queue items were saved"
-				if crafttransfered > 0 then
-					message = "Saved " .. tostring(crafttransfered) .. " craft queue item(s) into " .. tostring(craftchestId) .. " craft box(es)"
-				end
-				--player.print(message)
 			end
 		end
-
-		local message = "No stacks were saved"
-		if transfered > 0 then
-			message = "Saved " .. tostring(transfered) .. " stack(s) into " .. tostring(chestId) .. " box(es)"
-		end
-		--player.print(message)
 	end
 end
+
+-- Event handlers
+Event.register(defines.events.on_player_died, on_player_died)
