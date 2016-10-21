@@ -89,7 +89,7 @@ script.on_init(function()
 	make_lobby()
 end)
 
---global variables for the message desplay
+--global variables for the message display
 global.timer_value = 0
 global.timer_wait = 600
 global.timer_display = 1
@@ -179,13 +179,13 @@ script.on_event(defines.events.on_gui_click, function(event)
 	if player.gui.left.choose_team ~= nil then
 		if (event.element.name == "orange") then
 			if global.orange_count > global.purple_count then player.print("Too many Players on that team") return end
-				join_orange(event)
+			join_orange(event)
 		end
 	end
 	if player.gui.left.choose_team ~= nil then
 		if (event.element.name == "purple") then
 			if global.purple_count > global.orange_count then player.print("Too many Players on that team") return end
-				join_purple(event)
+			join_purple(event)
 		end
 	end
 	if player.gui.left.choose_team ~= nil then
@@ -317,7 +317,7 @@ end)
 
 function make_forces()
 	local s = game.surfaces["nauvis"]
-	--chart the area so the game can coppy the recourses 
+	--chart the area so the game can copy the resources 
 	game.forces["player"].chart(s,{{ global.purple_team_x - bd,  global.purple_team_y -bd}, { global.purple_team_x + bd,  global.purple_team_y + bd}} )
 	game.forces["player"].chart(s,{{ global.orange_team_x - bd,  global.orange_team_y -bd}, { global.orange_team_x + bd,  global.orange_team_y + bd}} )
 	game.create_force("Purple")
@@ -369,7 +369,7 @@ function set_spawns()
 		end
     else
 		for k, p in pairs (game.players) do 
-			p.print("Map unsutitable, please restart")
+			p.print("Map unsuitable, please restart")
 		end
 	end
 end
@@ -381,19 +381,18 @@ end
 
 function set_starting_areas()
 	local s = game.surfaces.nauvis
-  
-  for x=-global.spawn_size,global.spawn_size,1 do
-    for y=-global.spawn_size,global.spawn_size,1 do
-      local tile = s.get_tile(global.purple_team_x+x,global.purple_team_y+y)
-      if (tile.name == "water" or tile.name == "deepwater") then
-        s.set_tiles{{name = "grass", position = { global.purple_team_x+x,global.purple_team_y+y}}}  
-      end
-      tile = s.get_tile(global.orange_team_x+x,global.orange_team_y+y)
-      if (tile.name == "water" or tile.name == "deepwater") then
-        s.set_tiles{{name = "grass", position = { global.orange_team_x+x,global.orange_team_y+y}}} 
-      end
-    end
-  end
+	for x=-global.spawn_size,global.spawn_size,1 do
+		for y=-global.spawn_size,global.spawn_size,1 do
+			local tile = s.get_tile(global.purple_team_x+x,global.purple_team_y+y)
+			if (tile.name == "water" or tile.name == "deepwater") then
+				s.set_tiles{{name = "grass", position = { global.purple_team_x+x,global.purple_team_y+y}}}  
+			end
+			tile = s.get_tile(global.orange_team_x+x,global.orange_team_y+y)
+			if (tile.name == "water" or tile.name == "deepwater") then
+				s.set_tiles{{name = "grass", position = { global.orange_team_x+x,global.orange_team_y+y}}} 
+			end
+		end
+	end
   
 	s.set_tiles{
     		{name = "water", position ={ global.purple_team_x + 16,  global.purple_team_y +16}},
@@ -444,7 +443,7 @@ function make_team_option(player)
 	if player.gui.left.choose_team == nil then
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
 		frame.add{type = "button", caption = "Join Orange Team", name = "orange"}.style.font_color = global.orange_color
-        	frame.add{type = "button", caption = "Join Purple Team", name = "purple"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
+		frame.add{type = "button", caption = "Join Purple Team", name = "purple"}.style.font_color = {b = 0.91, r = 0.55, g = 0.26, a = 1}
 		if player.admin == true then
 			frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r = 0.1,b = 0.4,g = 1}
 		end
