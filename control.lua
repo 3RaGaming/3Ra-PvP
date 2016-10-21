@@ -206,17 +206,20 @@ Event.register(defines.events.on_entity_died, function(event)
 	--if team killed replace it.
 	if entity == global.troy_roboport then
 		if force == game.forces["Troy"] then
-			global.troy_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = game.forces["Troy"]}
-			global.troy_roboport.minable = false
-			global.troy_roboport.insert{name = "construction-robot", count = 2}
-			global.troy_roboport.insert{name = "repair-pack", count = 2}
-			global.troy_roboport.backer_name = "Troy"
+			entity.destroy()
+            global.troy_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = game.forces["Troy"]}
+            global.troy_roboport.minable = false
+            global.troy_roboport.insert{name = "construction-robot", count = 2}
+            global.troy_roboport.insert{name = "repair-pack", count = 2}
+            global.troy_roboport.backer_name = "Troy"
 		else
 			global.drbp = entity.position sparta_destroy_p()
 		end
 	end
 	if entity == global.sparta_roboport then
 		if force == game.forces["Sparta"] then
+			entity.destroy()
+			global.sparta_roboport.time_to_live = 1
 			global.sparta_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = game.forces["Sparta"]}
 			global.sparta_roboport.minable = false
 			global.sparta_roboport.insert{name = "construction-robot", count = 2}
