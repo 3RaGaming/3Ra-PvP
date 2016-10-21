@@ -49,7 +49,7 @@ local function spawn_chest(player, chestname)
 end
 
 -- before a player dies clears cursor so can be added to their grave.
-script.on_event(defines.events.on_pre_player_died, function(event)
+Event.register(defines.events.on_pre_player_died, function(event)
 	local player = game.players[event.player_index]
 	player.clean_cursor()
 end)

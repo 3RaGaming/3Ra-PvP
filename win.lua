@@ -54,19 +54,24 @@ end
 
 --check on tick, to see if anyone has won.
 function win()
-	if global.kill_count_troy >= 100 then
-		global.end_screen = game.tick + 180
-		script.on_event(defines.events.on_tick, troy_win) 
-	end
-	if global.kill_count_sparta >= 100 then
-		global.end_screen = game.tick + 180
-		script.on_event(defines.events.on_tick, sparta_win) 
-	end
+    --keep win_complete a lua global, so new players joining will see the message on join... maybe
+    if not win_complete then
+        if global.kill_count_troy >= 100 then
+            global.end_screen = game.tick + 180
+            Event.register(defines.events.on_tick, troy_win)
+            win_complete = true
+        end
+        if global.kill_count_sparta >= 100 then
+            global.end_screen = game.tick + 180
+            Event.register(defines.events.on_tick, sparta_win)
+            win_complete = true
+        end
+    end
 end
 
 function sparta_win()
 	if game.tick == global.end_screen then 
-		for k, player in pairs (game.players) do
+		for k, player in pairs (game.connected_players) do
 			if player.force.name == "Sparta" then
 				showdialog("You win :D", "Sparta has defeated the Troy. Well done!")
 			end

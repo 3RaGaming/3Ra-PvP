@@ -1,5 +1,5 @@
 --Gui elements
-script.on_event(defines.events.on_gui_click, function(event)
+Event.register(defines.events.on_gui_click, function(event)
 	local s = game.surfaces.nauvis
 	local player = game.players[event.player_index]
     local index = event.player_index
@@ -9,9 +9,7 @@ script.on_event(defines.events.on_gui_click, function(event)
 
 	if (event.element.name == "flashlight_button") then
 		if player.character == nil then return end
-			if global.player_flashlight_state == nil then
-				global.player_flashlight_state = {}
-			end
+			global.player_flashlight_state = global.player_flashlight_state or {}
 			if global.player_flashlight_state == true then
 				player.character.enable_flashlight()
 				global.player_flashlight_state = false
@@ -24,21 +22,16 @@ script.on_event(defines.events.on_gui_click, function(event)
 	
 	if (event.element.name == "crouch_button") then
 		if player.character == nil then return end
-		if global.player_crouch_state == nil then
-			global.player_crouch_state = {}
-		end
+		global.player_crouch_state = global.player_crouch_state or {}
+        global.player_crouch_color = global.player_crouch_color or {}
 		if global.player_crouch_state == true then
-			player.character_running_speed_modifier = 0
-			if player.force == "Troy" then
-				player.color = global.troy_color
-			end
-			if player.force == "Sparta" then
-				player.color = global.sparta_color
-			end
 			global.player_crouch_state = false
+			player.character_running_speed_modifier = 0
+			player.color = global.player_crouch_color
 		else 
 			global.player_crouch_state = true
 			player.character_running_speed_modifier = -0.6
+            global.player_crouch_color = player.color
 			player.color = black				
 		end
 	end
