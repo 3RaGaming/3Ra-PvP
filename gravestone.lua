@@ -55,7 +55,7 @@ script.on_event(defines.events.on_pre_player_died, function(event)
 end)
 
 
-function on_player_died(event)
+function gravestone(event)
 	local player = game.players[event.player_index]
 	if player ~= nil then
 		local transfered = 0	

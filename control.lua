@@ -100,10 +100,18 @@ global.timer_wait = 600
 global.timer_display = 1
 
 script.on_event(defines.events.on_tick, function(event)
-  if(game.tick % 30 == 0) then
+	--runs every 500ms
+	if(game.tick % 30 == 0) then
 		show_health()
 		color()
-  end
+	end
+	--runs every second
+	if(game.tick % 60 == 0) then
+	end	
+	-- Runs every 30 seconds
+	if(game.tick % 1800 == 0) then
+		protection()
+	end	
 	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 		set_spawns()
 		set_starting_areas()
@@ -163,7 +171,6 @@ script.on_event(defines.events.on_player_joined_game, function(event)
 	
 	if game.tick > 50*60 then    ------------*************vvvvvvthese have to match**********----------
 		make_team_option(player)
-		game.player.forces["Spectators"].chart_all()
 	else 
 		player.print({"msg-intro3"})
 	end
@@ -204,13 +211,34 @@ end)
 
 script.on_event(defines.events.on_entity_died, function(event)
 	local entity = event.entity
+	local force = event.force
+	local s = game.surfaces["nauvis"]
+	ppnc = s.find_non_colliding_position("player",  global.troy_team_position, 32,2)
+	opnc = s.find_non_colliding_position("player",  global.sparta_team_position, 32,2)
 	
 	-- if roboports are killed 
+	--if team killed replace it.
 	if entity == global.p_roboport then
-		global.drbp = entity.position sparta_destroy_p()
+		if force == game.forces["Troy"] then
+			global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = game.forces["Troy"]}
+			global.p_roboport.minable = false
+			global.p_roboport.insert{name = "construction-robot", count = 2}
+			global.p_roboport.insert{name = "repair-pack", count = 2}
+			global.p_roboport.backer_name = "Troy"
+		else
+			global.drbp = entity.position sparta_destroy_p()
+		end
 	end
 	if entity == global.o_roboport then
-		global.drbp = entity.position troy_destroy_o()
+		if force == game.forces["Sparta"] then
+			global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = game.forces["Sparta"]}
+			global.o_roboport.minable = false
+			global.o_roboport.insert{name = "construction-robot", count = 2}
+			global.o_roboport.insert{name = "repair-pack", count = 2}
+			global.o_roboport.backer_name = "Sparta"
+		else
+			global.drbp = entity.position troy_destroy_o()
+		end
 	end
 end)
 	
@@ -229,7 +257,6 @@ script.on_event(defines.events.on_player_died, function(event)
 end)
 
 function make_lobby()
-	game.print("lobby")
 	game.create_surface("Lobby", {width = 96, height = 32, starting_area = "big", water = "none"}) 
 end
 
@@ -254,7 +281,7 @@ function set_spawns()
 	if ppnc ~= nil and opnc ~= nil then
 		troy.set_spawn_position({ppnc.x,ppnc.y}, s)
 		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size/2,ppnc.y-global.spawn_size/2},{ppnc.x+global.spawn_size/2,ppnc.y+global.spawn_size/2}}) do object.destroy() end
-		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = troy}
+		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = game.forces["Troy"]}
 		global.p_roboport.minable = false
 		global.p_roboport.insert{name = "construction-robot", count = 10}
 		global.p_roboport.insert{name = "repair-pack", count = 20}
@@ -266,7 +293,7 @@ function set_spawns()
     
 		sparta.set_spawn_position({opnc.x,opnc.y}, s)
 		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size/2,opnc.y-global.spawn_size/2},{opnc.x+global.spawn_size/2,opnc.y+global.spawn_size/2}}) do object.destroy() end
-		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = sparta}
+		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = game.forces["Sparta"]}
 		global.o_roboport.minable = false
 		global.o_roboport.insert{name = "construction-robot", count = 10}
 		global.o_roboport.insert{name = "repair-pack", count = 20}
@@ -445,40 +472,17 @@ function show_health()
     end 
 end	
 
--- updates the player count gui for total players joined each force, and players online for each force.
-function update_count()
-  local sparta_status = "Sparta("..global.sparta_count..")"
-  local troy_status = "Troy("..global.troy_count..")"
-  for k,p in pairs(game.players) do
-    if p.gui.left.persons == nil then
-		local frame = p.gui.left.add{name="persons",type="frame",direction="horizontal",caption="Players"}
-		frame.add{type="label",name="sparta",caption=sparta_status}.style.font_color = global.sparta_color
-		frame.add{type="label", name="Vs", caption= "VS", style="caption_label_style"}
-		frame.add{type="label",name="troy",caption=troy_status,}.style.font_color = global.troy_color
-    else
-		p.gui.left.persons.sparta.caption = sparta_status
-		p.gui.left.persons.troy.caption = troy_status
-    end
-  end
-end
-
-function show_update_score()
-	if global.kill_count_troy == nil then global.kill_count_troy = 0 end
-	if global.kill_count_sparta == nil then global.kill_count_sparta = 0 end
-	if global.kill_count_sparta > 0 or global.kill_count_troy > 0 then
-		for index, player in pairs(game.players) do
-			if player.gui.left.kill_score == nil then
-				local frame = player.gui.left.add{name = "kill_score", type = "frame", direction = "horizontal", caption="Kill score"}
-				frame.add{type = "label", caption = global.kill_count_sparta, name = "kill_count_sparta"}.style.font_color = global.sparta_color
-				frame.add{type = "label", caption = global.kill_count_troy, name = "kill_count_troy"}.style.font_color = global.troy_color
-			else
-				player.gui.left.kill_score.kill_count_troy.caption = tostring(global.kill_count_troy)
-				player.gui.left.kill_score.kill_count_sparta.caption = tostring(global.kill_count_sparta)
-			end
-		end
+--if no one is online on either team set roboports as not destructible (not working)
+function protection()
+	if global.o_roboport or global.p_roboport == nil then return end
+	if global.sparta_count or global.troy_count == 0 then
+		global.o_roboport.destructible = false
+		global.p_roboport.destructible = false
+	else
+		global.o_roboport.destructible = true
+		global.o_roboport.destructible = true
 	end
-	win()
-end
+end	
 
 function color()
 	for k, player in pairs(game.players) do

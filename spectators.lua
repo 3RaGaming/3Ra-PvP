@@ -19,8 +19,11 @@ function join_spectators(index)
 	player.force = game.forces["Spectators"]
 	global.player_spectator_state[index] = true
 	player.print("You are now a spectator")
-	player.gui.left.spectate.caption = "Return"
 	player.force.chart_all()
+	if player.gui.left.spectate ~= nil then
+	player.gui.left.spectate.caption = "Return"
+	end
+	
 end
 
 function force_spectators(index)

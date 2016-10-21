@@ -7,5 +7,9 @@ function research_technology()
 			technology.researched = false
 			end
 		end
+		force.recipes["energy-shield-mk2-equipment"].enabled=false
+		force.recipes["laser-turret"].enabled=false
+		force.recipes["destroyer-capsule"].enabled=false
+		force.recipes["personal-laser-defense-equipment"].enabled=false
 	end	
 end
