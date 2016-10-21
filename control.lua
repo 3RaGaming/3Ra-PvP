@@ -406,7 +406,7 @@ function join_troy(event)
 	if p.character == nil then
 		p.force = game.forces["Troy"]
         if p.connected then
-           	local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = "Troy}
+           	local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = "Troy"}
         	p.set_controller{type = defines.controllers.character, character = character}
     	end
 	end
