@@ -18,9 +18,6 @@ require "gui"
 global.kill_count_troy = 0
 global.kill_count_sparta = 0
 
-global.sparta_count = 0
-global.troy_count = 0
-
 -- make sure base is at least 1000x1000
 global.base_min_separation = 700
 global.base_max_separation = 800
@@ -141,20 +138,15 @@ end)
 
 Event.register(defines.events.on_player_joined_game, function(event)
 	global.protection_tick = game.tick + (30 * 60) --30 seconds after a team is empty, block roboport from being destoryed
-	local player = game.players[event.player_index]
-	if player.admin == true then
+	local p = game.players[event.player_index]
+	if p.admin == true then
 		if game.tick > 60 then
-			game.print("Hail Admin "..player.name)
+			game.print("Hail Admin "..p.name)
 		end
 	end
-	if player.force == game.forces["Sparta"] then
-		global.sparta_count = global.sparta_count + 1
-	elseif player.force == game.forces["Troy"] then
-		global.troy_count = global.troy_count + 1
-	end
 	create_buttons(event)
-	show_update_score()
 	update_count()
+	show_update_score()
  end)
  
 Event.register(defines.events.on_player_created, function(event)
@@ -178,13 +170,6 @@ Event.register(defines.events.on_player_created, function(event)
 end)
 
 Event.register(defines.events.on_player_left_game, function(event)
-	player = game.players[event.player_index]
-	if player.force == game.forces["Sparta"] then
-		global.sparta_count = global.sparta_count - 1
-	end
-	if player.force == game.forces["Troy"] then
-		global.troy_count = global.troy_count - 1
-	end
 	update_count()
 end)
  
@@ -400,7 +385,7 @@ function join_a_team(event, joining, opposing)
 	p.force = game.forces[joining]
 	p.gui.left.choose_team.destroy()
 	starting_inventory(event)
-	update_count(p)
+	update_count()
 	p.print("Destroy the "..opposing.." Roboport for 40 extra points")      
 	game.print(p.name..", of "..joining..", has entered the arena")
 end
