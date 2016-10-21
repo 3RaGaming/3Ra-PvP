@@ -21,8 +21,19 @@ global.kill_count_orange = 0
 global.orange_count = 0
 global.purple_count = 0
 
-d = 32 * 3
-bd = d * 3
+-- make sure base is at least 1000x1000
+global.base_min_separation = 700
+global.base_max_separation = 800
+
+global.base_separation = 0
+global.base_rotation = 0
+
+global.spawn_size = 90
+-- controls how much slower you run as you lose health
+global.crippling_factor = 1
+
+d = 32*3
+bd = d*3
 global.orange_color = { b = 0, r = 0.8, g = 0.4, a = 1 }
 global.purple_color = { b = 0.9, r = 0.8, g = 0.4, a = 1 }
 
@@ -30,47 +41,52 @@ normal_attack_sent_event = script.generate_event_name()
 landing_attack_sent_event = script.generate_event_name()
 
 remote.add_interface("freeplay",
-    {
-        set_attack_data = function(data)
-            global.attack_data = data
-        end,
-        get_attack_data = function()
-            return global.attack_data
-        end,
-        get_normal_attack_sent_event = function()
-            return normal_attack_sent_event
-        end,
-    })
+{
+	set_attack_data = function(data)
+		global.attack_data = data
+	end,
+	get_attack_data = function()
+		return global.attack_data
+	end,
+	get_normal_attack_sent_event = function()
+		return normal_attack_sent_event
+	end,
+})
 
 init_attack_data = function()
-    global.attack_data = {
-        -- whether all attacks are enabled
-        enabled = true,
-        -- this script is allowed to change the attack values attack_count and until_next_attack
-        change_values = true,
-        -- what distracts the creepers during the attack
-        distraction = defines.distraction.byenemy,
-        -- number of units in the next attack
-        attack_count = 5,
-        -- time to the next attack
-        until_next_attack = 60 * 60 * 60,
-    }
+	global.attack_data = {
+		-- whether all attacks are enabled
+		enabled = true,
+		-- this script is allowed to change the attack values attack_count and until_next_attack
+		change_values = true,
+		-- what distracts the creepers during the attack
+		distraction = defines.distraction.byenemy,
+		-- number of units in the next attack
+		attack_count = 5,
+		-- time to the next attack
+		until_next_attack = 60 * 60 * 60,
+	}
 end
 
-
+	
 script.on_init(function()
-    global.purple_team_x = math.random(370, 380) -- distance between bases
-    global.purple_team_y = math.random(0, 0)
-    global.purple_team_position = { global.purple_team_x, global.purple_team_y }
-    global.purple_team_area = { { global.purple_team_x - d, global.purple_team_y - d }, { global.purple_team_x + d, global.purple_team_y + d } }
-    global.orange_team_x = 0 - math.random(370, 380) -- distance between bases
-    global.orange_team_y = 0 - math.random(0, 0)
-    global.orange_team_position = { global.orange_team_x, global.orange_team_y }
-    global.orange_team_area = { { global.orange_team_x - d, global.orange_team_y - d }, { global.orange_team_x + d, global.orange_team_y + d } }
-
-    init_attack_data()
-    make_forces()
-    make_lobby()
+  -- randomly rotate bases to make it more interesting
+  global.base_separation = math.random(global.base_min_separation,global.base_max_separation)/2
+  global.base_rotation = math.random(0,math.pi*2)
+  
+  global.purple_team_x = global.base_separation*math.cos(global.base_rotation)
+  global.purple_team_y = global.base_separation*math.sin(global.base_rotation)
+  global.purple_team_position ={ global.purple_team_x, global.purple_team_y}
+  global.purple_team_area = {{ global.purple_team_x - d,  global.purple_team_y - d},{ global.purple_team_x + d,  global.purple_team_y + d}}
+  
+  global.orange_team_x = global.base_separation*math.cos(math.pi + global.base_rotation)
+  global.orange_team_y = global.base_separation*math.sin(math.pi + global.base_rotation)
+  global.orange_team_position = { global.orange_team_x, global.orange_team_y}
+  global.orange_team_area = {{ global.orange_team_x - d,  global.orange_team_y - d},{ global.orange_team_x + d,  global.orange_team_y + d}}
+  
+	init_attack_data()
+	make_forces()
+	make_lobby()
 end)
 
 --global variables for the message desplay
@@ -85,12 +101,12 @@ local function tick_update(event)
         spectate_gui()
     end
     if game.tick == 50 * 60 then ---------- *************^^^^these have to match**********----------
-    set_spawns()
-    set_starting_areas()
-    research_technology()
-    for k, p in pairs(game.players) do
-        make_team_option(p)
-    end
+		set_spawns()
+		set_starting_areas()
+		research_technology()
+		for k, p in pairs(game.players) do
+			make_team_option(p)
+		end
     end
     local current_time = game.tick / 60 - global.timer_value
     local message_display = "test"
@@ -124,7 +140,7 @@ local function player_creation(event)
     player.print({ "msg-intro2" })
 
     if game.tick > 50 * 60 then ------------ *************vvvvvvthese have to match**********----------
-    make_team_option(player)
+		make_team_option(player)
     else
         player.print({ "msg-intro3" })
     end
@@ -193,16 +209,26 @@ local function player_joined(event)
     if player.gui.left.flashlight == nil then
         local frame = player.gui.left.add { name = "flashlight", type = "button", direction = "horizontal", caption = "flashlight" }
     end
-
-    if player.force == game.forces["Orange"] then
-        global.orange_count = global.orange_count + 1
-    end
-    if player.force == game.forces["Purple"] then
-        global.purple_count = global.purple_count + 1
-    end
-    show_update_score()
-    update_count()
-end
+	
+	if player.admin == true then
+        if player.gui.left.spectate == nil then
+            local adminframe = player.gui.left.add{name = "spectate", type = "button", direction = "horizontal", caption = "spectate"}
+        end
+		if game.tick > 60 then
+			for k, p in pairs (game.players) do
+				p.print("All Hail Admin "..player.name)
+			end
+		end
+	end
+	if player.force == game.forces["Orange"] then
+		global.orange_count = global.orange_count + 1
+	end
+	if player.force == game.forces["Purple"] then
+		global.purple_count = global.purple_count + 1
+	end
+	show_update_score()
+	update_count()
+ end
 
 Event.register(defines.events.on_player_joined_game, player_joined)
 
@@ -274,38 +300,41 @@ function set_spawns()
     ppnc = s.find_non_colliding_position("player", global.purple_team_position, 32, 2)
     opnc = s.find_non_colliding_position("player", global.orange_team_position, 32, 2)
 
-    if ppnc ~= nil and opnc ~= nil then
-        purple.set_spawn_position({ ppnc.x, ppnc.y }, s)
-        for k, object in pairs(s.find_entities { { ppnc.x - 5, ppnc.y - 45 }, { ppnc.x + 5, ppnc.y + 5 } }) do object.destroy() end
-        global.p_roboport = s.create_entity { name = "roboport", position = { ppnc.x, ppnc.y - 40 }, force = purple }
-        global.p_roboport.minable = false
-        global.p_roboport.insert { name = "construction-robot", count = 10 }
-        global.p_roboport.insert { name = "repair-pack", count = 20 }
-        global.p_roboport.backer_name = "Purple"
-        p_turret = s.create_entity { name = "gun-turret", position = { ppnc.x, ppnc.y - 5 }, force = purple }
-        p_turret.minable = false
-        p_turret.insert { name = "piercing-rounds-magazine", count = 50 }
-        orange.chart(s, { { ppnc.x - 32, ppnc.y - 42 }, { ppnc.x + 32, ppnc.y + 22 } })
-        orange.set_spawn_position({ opnc.x, opnc.y }, s)
-        for k, object in pairs(s.find_entities { { opnc.x - 5, opnc.y - 45 }, { opnc.x + 5, opnc.y + 5 } }) do object.destroy() end
-        global.o_roboport = s.create_entity { name = "roboport", position = { opnc.x, opnc.y - 40 }, force = orange }
-        global.o_roboport.minable = false
-        global.o_roboport.insert { name = "construction-robot", count = 10 }
-        global.o_roboport.insert { name = "repair-pack", count = 20 }
-        global.o_roboport.backer_name = "Orange"
-        o_turret = s.create_entity { name = "gun-turret", position = { opnc.x, opnc.y - 5 }, force = orange }
-        o_turret.minable = false
-        o_turret.insert { name = "piercing-rounds-magazine", count = 50 }
-        purple.chart(s, { { opnc.x - 32, opnc.y - 42 }, { opnc.x + 32, opnc.y + 22 } })
-        for k, p in pairs(game.players) do
-            p.print("Teams are now unlocked")
-        end
-        for k, entity in pairs(s.find_entities_filtered({ area = { { ppnc.x - bd, ppnc.y - bd }, { ppnc.x + bd, ppnc.y + bd } }, force = "enemy" })) do
-            entity.destroy()
-        end
-        for k, entity in pairs(s.find_entities_filtered({ area = { { opnc.x - bd, opnc.y - bd }, { opnc.x + bd, opnc.y + bd } }, force = "enemy" })) do
-            entity.destroy()
-        end
+	if ppnc ~= nil and opnc ~= nil then
+		purple.set_spawn_position({ppnc.x,ppnc.y}, s)
+		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size/2,ppnc.y-global.spawn_size/2},{ppnc.x+global.spawn_size/2,ppnc.y+global.spawn_size/2}}) do object.destroy() end
+		global.p_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = purple}
+		global.p_roboport.minable = false
+		global.p_roboport.insert{name = "construction-robot", count = 10}
+		global.p_roboport.insert{name = "repair-pack", count = 20}
+		global.p_roboport.backer_name = "Purple"
+		p_turret = s.create_entity{name = "gun-turret", position = {ppnc.x,ppnc.y-5}, force = purple}
+		p_turret.minable = false
+		p_turret.destructible = false
+		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
+    
+		orange.set_spawn_position({opnc.x,opnc.y}, s)
+		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size/2,opnc.y-global.spawn_size/2},{opnc.x+global.spawn_size/2,opnc.y+global.spawn_size/2}}) do object.destroy() end
+		global.o_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = orange}
+		global.o_roboport.minable = false
+		global.o_roboport.insert{name = "construction-robot", count = 10}
+		global.o_roboport.insert{name = "repair-pack", count = 20}
+		global.o_roboport.backer_name = "Orange"
+		o_turret = s.create_entity{name = "gun-turret", position = {opnc.x,opnc.y-5}, force = orange}
+		o_turret.minable = false
+		o_turret.destructible = false
+		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
+		
+		
+		for k, p in pairs (game.players) do
+			p.print("Teams are now unlocked")
+		end
+		for k, entity in pairs(s.find_entities_filtered({area={{ppnc.x - bd, ppnc.y -bd}, {ppnc.x + bd, ppnc.y + bd}}, force= "enemy"})) do
+			entity.destroy()
+		end
+		for k, entity in pairs(s.find_entities_filtered({area={{opnc.x - bd, opnc.y -bd}, {opnc.x + bd, opnc.y + bd}}, force= "enemy"})) do
+			entity.destroy()
+		end
     else
         for k, p in pairs(game.players) do
             p.print("Map unsutitable, please restart")
@@ -319,20 +348,34 @@ function make_lobby()
 end
 
 function set_starting_areas()
-    local s = game.surfaces.nauvis
-    s.set_tiles {
-        { name = "water", position = { global.purple_team_x + 16, global.purple_team_y + 16 } },
-        { name = "water", position = { global.purple_team_x + 17, global.purple_team_y + 16 } },
-        { name = "water", position = { global.purple_team_x + 16, global.purple_team_y + 17 } },
-        { name = "water", position = { global.purple_team_x + 17, global.purple_team_y + 17 } }
-    }
-
-    s.set_tiles {
-        { name = "water", position = { global.orange_team_x + 16, global.orange_team_y + 16 } },
-        { name = "water", position = { global.orange_team_x + 17, global.orange_team_y + 16 } },
-        { name = "water", position = { global.orange_team_x + 16, global.orange_team_y + 17 } },
-        { name = "water", position = { global.orange_team_x + 17, global.orange_team_y + 17 } }
-    }
+	local s = game.surfaces.nauvis
+  
+  for x=-global.spawn_size,global.spawn_size,1 do
+    for y=-global.spawn_size,global.spawn_size,1 do
+      local tile = s.get_tile(global.purple_team_x+x,global.purple_team_y+y)
+      if (tile.name == "water" or tile.name == "deepwater") then
+        s.set_tiles{{name = "grass", position = { global.purple_team_x+x,global.purple_team_y+y}}}  
+      end
+      tile = s.get_tile(global.orange_team_x+x,global.orange_team_y+y)
+      if (tile.name == "water" or tile.name == "deepwater") then
+        s.set_tiles{{name = "grass", position = { global.orange_team_x+x,global.orange_team_y+y}}} 
+      end
+    end
+  end
+  
+	s.set_tiles{
+    		{name = "water", position ={ global.purple_team_x + 16,  global.purple_team_y +16}},
+    		{name = "water", position ={ global.purple_team_x + 17,  global.purple_team_y +16}},
+    		{name = "water", position ={ global.purple_team_x + 16,  global.purple_team_y +17}},
+    		{name = "water", position ={ global.purple_team_x + 17,  global.purple_team_y +17}}
+	}
+        
+	s.set_tiles{
+    		{name = "water", position = { global.orange_team_x + 16, global.orange_team_y +16}},
+    		{name = "water", position = { global.orange_team_x + 17, global.orange_team_y +16}},
+    		{name = "water", position = { global.orange_team_x + 16, global.orange_team_y +17}},
+    		{name = "water", position = { global.orange_team_x + 17, global.orange_team_y +17}}
+	}
 
     for k, pr in pairs(s.find_entities_filtered { area = { { global.purple_team_x - 128, global.purple_team_y - 128 }, { global.purple_team_x + 128, global.purple_team_y + 128 } }, type = "resource" }) do
         pr.destroy()
@@ -368,10 +411,10 @@ end
 function make_team_option(player)
     if player.gui.left.choose_team == nil then
         local frame = player.gui.left.add { name = "choose_team", type = "frame", direction = "vertical", caption = "Choose your Team" }
-        frame.add { type = "button", caption = "Join Orange Team", name = "orange" }.style.font_color = global.orange_color
-        frame.add { type = "button", caption = "Join Purple Team", name = "purple" }.style.font_color = global.purple_color
+        frame.add{ type = "button", caption = "Join Orange Team", name = "orange" }.style.font_color = global.orange_color
+        frame.add{ type = "button", caption = "Join Purple Team", name = "purple" }.style.font_color = global.purple_color
         if player.admin == true then
-            frame.add { type = "button", caption = "Join Spectators", name = "spectator" }.style.font_color = { r = 0.1, b = 0.4, g = 1 }
+            frame.add{ type = "button", caption = "Join Spectators", name = "spectator" }.style.font_color = { r = 0.1, b = 0.4, g = 1 }
         end
     end
 end
@@ -413,10 +456,10 @@ function kill_orange(event)
     local drx = global.drbp.x
     local dry = global.drbp.y
     if game.tick < global.ending_tick and game.tick % 20 == 0 then
-        s.create_entity { position = { drx + math.random(-2, 2), dry + math.random(-2, 2) }, name = "medium-explosion" }
+        s.create_entity{ position = { drx + math.random(-2, 2), dry + math.random(-2, 2) }, name = "medium-explosion" }
     end
     if game.tick == global.ending_tick then
-        s.create_entity { position = { drx, dry }, name = "big-explosion" }
+        s.create_entity{ position = { drx, dry }, name = "big-explosion" }
     end
 end
 
@@ -426,10 +469,10 @@ function kill_purple(event)
     local drx = global.drbp.x
     local dry = global.drbp.y
     if game.tick < global.ending_tick and game.tick % 20 == 0 then
-        s.create_entity { position = { drx + math.random(-2, 2), dry + math.random(-2, 2) }, name = "medium-explosion" }
+        s.create_entity{ position = { drx + math.random(-2, 2), dry + math.random(-2, 2) }, name = "medium-explosion" }
     end
     if game.tick == global.ending_tick then
-        s.create_entity { position = { drx, dry }, name = "big-explosion" }
+        s.create_entity{ position = { drx, dry }, name = "big-explosion" }
     end
 end
 
@@ -477,8 +520,8 @@ function showdialog(title, message)
         for i, player in pairs(game.players) do
             if player.gui.center.end_message == nil then
                 local frame = player.gui.center.add { type = "frame", name = "end_message", caption = title, direction = "vertical" }
-                frame.add { type = "label", caption = message }
-                frame.add { type = "button", name = "end_message_button", caption = "Close this message" }
+                frame.add{ type = "label", caption = message }
+                frame.add{ type = "button", name = "end_message_button", caption = "Close this message" }
             end
         end
     end
@@ -491,8 +534,8 @@ function join_orange(event)
     local index = event.player_index
     if player.character == nil then
         if player.connected then
-            local character = player.surface.create_entity { name = "player", position = player.surface.find_non_colliding_position("player", player.force.get_spawn_position(player.surface), 10, 2), force = force }
-            player.set_controller { type = defines.controllers.character, character = character }
+            local character = player.surface.create_entity{ name = "player", position = player.surface.find_non_colliding_position("player", player.force.get_spawn_position(player.surface), 10, 2), force = force }
+            player.set_controller{ type = defines.controllers.character, character = character }
         end
     end
     global.orange_count_total = global.orange_count_total + 1
@@ -516,8 +559,8 @@ function join_purple(event)
     local index = event.player_index
     if player.character == nil then
         if player.connected then
-            local character = player.surface.create_entity { name = "player", position = player.surface.find_non_colliding_position("player", player.force.get_spawn_position(player.surface), 10, 2), force = force }
-            player.set_controller { type = defines.controllers.character, character = character }
+            local character = player.surface.create_entity{ name = "player", position = player.surface.find_non_colliding_position("player", player.force.get_spawn_position(player.surface), 10, 2), force = force }
+            player.set_controller{ type = defines.controllers.character, character = character }
         end
     end
     global.purple_count_total = global.purple_count_total + 1
@@ -537,64 +580,80 @@ end
 function starting_inventory(event)
     local player = game.players[event.player_index]
     local index = event.player_index
-    player.insert { name = "iron-plate", count = 8 }
-    player.insert { name = "submachine-gun", count = 1 }
-    player.insert { name = "piercing-rounds-magazine", count = 100 }
-    player.insert { name = "burner-mining-drill", count = 5 }
-    player.insert { name = "stone-furnace", count = 10 }
-    player.insert { name = "raw-fish", count = 10 }
+    player.insert{ name = "iron-plate", count = 8 }
+    player.insert{ name = "submachine-gun", count = 1 }
+    player.insert{ name = "piercing-rounds-magazine", count = 100 }
+    player.insert{ name = "burner-mining-drill", count = 5 }
+    player.insert{ name = "stone-furnace", count = 10 }
+    player.insert{ name = "raw-fish", count = 10 }
 end
 
+	-- shows player health as a text float.
 function show_health()
     for k, player in pairs(game.players) do
-        if player.connected then
-            if player.character then
-                if player.character.health == nil then return end
-                local index = player.index
-                local health = math.ceil(player.character.health)
-                if global.player_health == nil then global.player_health = {} end
-                if global.player_health[index] == nil then global.player_health[index] = health end
-                if global.player_health[index] ~= health then
-                    global.player_health[index] = health
-                    if health < 80 then
-                        if health > 50 then
-                            player.surface.create_entity { name = "flying-text", color = { b = 0.2, r = 0.1, g = 1, a = 0.8 }, text = (health), position = { player.position.x, player.position.y - 2 } }
-                        elseif health > 29 then
-                            player.surface.create_entity { name = "flying-text", color = { r = 1, g = 1, b = 0 }, text = (health), position = { player.position.x, player.position.y - 2 } }
-                        else
-                            player.surface.create_entity { name = "flying-text", color = { b = 0.1, r = 1, g = 0, a = 0.8 }, text = (health), position = { player.position.x, player.position.y - 2 } }
-                        end
-                    end
-                end
-            end
+		if player.connected then
+			if player.character then
+				if player.character.health == nil then return end
+				local index = player.index
+				local health = math.ceil(player.character.health)
+				if global.player_health == nil then global.player_health = {} end
+				if global.player_health[index] == nil then global.player_health[index] = health end
+				if global.player_health[index] ~= health then
+					global.player_health[index] = health
+					-- slows the player just slightly if not at full health
+					player.character_running_speed_modifier = -.1*(100-health)*global.crippling_factor/100
+					-- prints player health when < 80%
+					if health < 80 then
+						if health > 50 then
+							player.surface.create_entity{name="flying-text", color={b = 0.2, r= 0.1, g = 1, a = 0.8}, text=(health), position= {player.position.x, player.position.y-2}}
+						elseif health > 29 then
+							player.surface.create_entity{name="flying-text", color={r = 1, g = 1, b = 0}, text=(health), position= {player.position.x, player.position.y-2}}
+						else
+							player.surface.create_entity{name="flying-text", color={b = 0.1, r= 1, g = 0, a = 0.8}, text=(health), position= {player.position.x, player.position.y-2}}
+						end
+					end	
+				end
+			end
         end
-    end
+    end 
+end	
+
+function force_spectators(index)
+	local player = game.players[index]
+	if global.player_spectator_state == nil then global.player_spectator_state = {} end
+	if global.player_spectator_character == nil then global.player_spectator_character = {}  end
+	if global.player_spectator_force == nil then global.player_spectator_force = {} end
+	if global.player_spectator_state[index] then
+		--remove spectator mode
+		if player.character == nil and global.player_spectator_character[index] ~= nil then
+			local pos = player.position
+			player.set_controller{type=defines.controllers.character, character=global.player_spectator_character[index]}
+			player.teleport(pos)
+		end
+		global.player_spectator_state[index] = false
+		player.force = game.forces[global.player_spectator_force[index].name]
+		player.print("Summoning your character")
+	else
+		--put player in spectator mode
+		if player.surface.name == "Lobby" then
+			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
+		end
+		if player.character then
+			global.player_spectator_character[index] = player.character
+			global.player_spectator_force[index] = player.force
+			player.set_controller{type = defines.controllers.ghost}
+		end
+		player.force = game.forces["Spectators"]
+		global.player_spectator_state[index] = true
+		player.print("You are now a spectator")
+	end
 end
 
-function spectate_gui()
-    for k, player in pairs(game.players) do
-        if player.force == game.forces["Spectators"] then
-            if not player.gui.left.health_frame then
-                local frame = player.gui.left.add { name = "health_frame", type = "frame", direction = "vertical", caption = "Player Health" }
-                frame.style.minimal_width = 160
-                local health_table = frame.add { name = "health_table", type = "table", colspan = 1 }
-                for i, players in pairs(game.players) do
-                    health_table.add { name = "player" .. i, type = "label", caption = { "", players.name, ": " } }
-                    health_table.add { name = "health" .. i, type = "progressbar", size = 100 }
-                end
-            else
-                for i, player in pairs(game.players) do
-                    if player.character == nil then return end
-                    player.gui.left.health_frame.health_table["health" .. i].value = math.ceil(player.character.health)
-                end
-            end
-        else
-            if player.gui.left.health_frame then
-                player.gui.left.health_frame.destroy()
-            end
-        end
-    end
-end
+-- before a player dies clears cursor so can be added to their grave.
+Event.register(defines.events.on_pre_player_died, function(event)
+	local player = game.players[event.player_index]
+	player.clean_cursor()
+end)
 
 -- updates the player count gui for total players joined each force, and players online for each force.
 function update_count()
@@ -603,9 +662,9 @@ function update_count()
     for k, p in pairs(game.players) do
         if p.gui.left.persons == nil then
             local frame = p.gui.left.add { name = "persons", type = "frame", direction = "horizontal", caption = "Players" }
-            frame.add { type = "label", name = "orange", caption = orange_status }.style.font_color = global.orange_color
-            frame.add { type = "label", name = "Vs", caption = "VS", style = "caption_label_style" }
-            frame.add { type = "label", name = "purple", caption = purple_status, }.style.font_color = global.purple_color
+            frame.add{ type = "label", name = "orange", caption = orange_status }.style.font_color = global.orange_color
+            frame.add{ type = "label", name = "Vs", caption = "VS", style = "caption_label_style" }
+            frame.add{ type = "label", name = "purple", caption = purple_status, }.style.font_color = global.purple_color
         else
             p.gui.left.persons.orange.caption = orange_status
             p.gui.left.persons.purple.caption = purple_status
@@ -613,12 +672,10 @@ function update_count()
     end
 end
 
---this is for a server to monotor chat and print chat in game from a web page.(@StudMuffin/Discord)
+--Special command for communicating through our custom web-gui
 function server_message(user, message)
-    print("[WEB] ", user, ": ", message)
-    for _, p in pairs(game.connected_players) do
-        p.print("[WEB] ", user, ": ", message)
-    end
+    print("[WEB] "..user..": "..message)
+    game.print("[WEB] "..user..": "..message)
 end
 
 function show_update_score()
@@ -628,8 +685,8 @@ function show_update_score()
         for index, player in pairs(game.players) do
             if player.gui.left.kill_score == nil then
                 local frame = player.gui.left.add { name = "kill_score", type = "frame", direction = "horizontal", caption = "Kill score" }
-                frame.add { type = "label", caption = global.kill_count_orange, name = "kill_count_orange" }.style.font_color = global.orange_color
-                frame.add { type = "label", caption = global.kill_count_purple, name = "kill_count_purple" }.style.font_color = global.purple_color
+                frame.add{ type = "label", caption = global.kill_count_orange, name = "kill_count_orange" }.style.font_color = global.orange_color
+                frame.add{ type = "label", caption = global.kill_count_purple, name = "kill_count_purple" }.style.font_color = global.purple_color
             else
                 player.gui.left.kill_score.kill_count_purple.caption = tostring(global.kill_count_purple)
                 player.gui.left.kill_score.kill_count_orange.caption = tostring(global.kill_count_orange)
