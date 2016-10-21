@@ -5,7 +5,7 @@ if not scenario.config then scenario.config = {} end
 --config and event must be called first.
 --require "config"
 require "locale/utils/event"
-require "locale/utils/admin"
+--require "locale/utils/admin"
 require "locale/utils/undecorator"
 require "server"
 require "technologies"
@@ -376,6 +376,25 @@ function set_starting_areas()
 			s.create_entity{name = r.name, position = {nrx,nry}, force = r.force, amount = r.amount}
 		end
 	end
+end
+
+-- when a player clicks the gui button to join sparta.
+function join_a_team(event, joining, opposing)
+	local s = game.surfaces.nauvis
+	local p = game.players[event.player_index]
+	if p.character == nil then
+        if p.connected then
+           	local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = joining}
+        	p.set_controller{type = defines.controllers.character, character = character}
+    	end
+	end
+	p.teleport(game.forces[joining].get_spawn_position(s), game.surfaces.nauvis)
+	p.force = game.forces[joining]
+	p.gui.left.choose_team.destroy()
+	starting_inventory(event)
+	update_count(p)
+	p.print("Destroy the "..opposing.." Roboport for 40 extra points")      
+	game.print(p.name.." of "..joining.." has entered the arena")
 end
 
 -- when a player clicks the gui button to join sparta.

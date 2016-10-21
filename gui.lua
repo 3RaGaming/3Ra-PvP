@@ -42,7 +42,6 @@ script.on_event(defines.events.on_gui_click, function(event)
 			player.color = black				
 		end
 	end
-	
 	if player.gui.center.end_message ~= nil then
 		if (event.element.name == "end_message_button") then
 			player.gui.center.end_message.destroy()
@@ -51,13 +50,13 @@ script.on_event(defines.events.on_gui_click, function(event)
 	if player.gui.left.choose_team ~= nil then
 		if (event.element.name == "sparta") then
 			if global.sparta_count > global.troy_count then player.print("Too many Players in Sparta, try Troy") return end
-				join_sparta(event)
+			join_a_team(event, "Sparta", "Troy")
 		end
 	end
 	if player.gui.left.choose_team ~= nil then
 		if (event.element.name == "troy") then
 			if global.troy_count > global.sparta_count then player.print("Too many Players in Troy, try Sparta") return end
-				join_troy(event)
+			join_a_team(event, "Troy", "Sparta")
 		end
 	end
 	if player.gui.left.choose_team ~= nil then
@@ -85,10 +84,18 @@ function make_team_option(player)
 end
 
 -- updates the player count gui for total players joined each force, and players online for each force.
-function update_count()
+function update_count(p)
 	local sparta_status = "Sparta("..global.sparta_count..")"
 	local troy_status = "Troy("..global.troy_count..")"
-	for k,p in pairs(game.players) do
+    if p ~= nil then
+        if p.force.name == "Troy" then
+            global.troy_count = global.troy_count + 1
+        end
+        if p.force.name == "Sparta" then
+            global.sparta_count = global.sparta_count + 1
+        end
+    end
+	for k,p in pairs(game.connected_players) do
 		if p.gui.top.persons == nil then
 			local frame = p.gui.top.add{name="persons",type="flow",direction="horizontal"}
 			frame.add{type="flow",name="space",direction="horizontal"}.style.minimal_width = 800
