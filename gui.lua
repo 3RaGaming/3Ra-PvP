@@ -93,13 +93,15 @@ function update_count(p)
             global.sparta_count = global.sparta_count + 1
         end
     end
-	for k,p in pairs(game.connected_players) do
+	for _, p in pairs(game.connected_players) do
 		if p.gui.top.persons == nil then
 			local frame = p.gui.top.add{name="persons",type="flow",direction="horizontal"}
 			frame.add{type="flow",name="space",direction="horizontal"}.style.minimal_width = 800
 			frame.add{type="label",name="sparta",caption=sparta_status, style = "caption_label_style"}.style.font_color = global.sparta_color
 			frame.add{type="label", name="Vs", caption= "VS", style="caption_label_style"}
 			frame.add{type="label",name="troy",caption=troy_status, style = "caption_label_style"}.style.font_color = global.troy_color
+			p.gui.top.persons.sparta.caption = sparta_status
+			p.gui.top.persons.troy.caption = troy_status
 		else
 			p.gui.top.persons.sparta.caption = sparta_status
 			p.gui.top.persons.troy.caption = troy_status
