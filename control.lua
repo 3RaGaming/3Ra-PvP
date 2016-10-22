@@ -106,11 +106,6 @@ Event.register(defines.events.on_tick, function(event)
 	end
 	--runs every second
 	if(game.tick % 60 == 0) then
-		if game.tick <= (49 * 60) then
-			round_start("count")
-		elseif game.tick == (50 * 60) then
-			round_start("done")
-		end
 		protection()
 		if global.pre_start then
 			local s = game.surfaces["nauvis"]
@@ -159,7 +154,6 @@ Event.register(defines.events.on_tick, function(event)
 end)
 
 Event.register(defines.events.on_player_joined_game, function(event)
-	global.protection_tick = game.tick + (30 * 60) --30 seconds after a team is empty, block roboport from being destoryed
 	local p = game.players[event.player_index]
 	if p.admin == true then
 		if game.tick > 60 then
@@ -184,7 +178,7 @@ Event.register(defines.events.on_player_created, function(event)
 	player.print({"msg-intro1"})
 	player.print({"msg-intro2"})
 	
-	if not global.pre_start then    ------------*************vvvvvvthese have to match**********----------
+	if not global.pre_start and (player.force ~= "Troy" or player.force ~= "Sparta") then
 		make_team_option(player)
 	else 
 		player.print({"msg-intro3"})
@@ -193,6 +187,9 @@ end)
 
 Event.register(defines.events.on_player_left_game, function(event)
 	update_count()
+	if #game.players[event.player_index].force.connected_players == 0 then
+		global.protection_tick = game.tick + (30 * 60) --30 seconds after a team is empty, block roboport from being destoryed
+	end
 end)
  
 Event.register(defines.events.on_player_respawned, function(event)
@@ -229,8 +226,10 @@ Event.register(defines.events.on_entity_died, function(event)
 	if entity == global.troy_roboport then
 		if force == game.forces["Troy"] then
 			entity.destroy()
+			game.print("Rookie from Troy attempted to destroy their own roboport")
             global.troy_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = game.forces["Troy"]}
             global.troy_roboport.minable = false
+			global.troy_roboport.energy=(10000000*10)
             global.troy_roboport.insert{name = "construction-robot", count = 2}
             global.troy_roboport.insert{name = "repair-pack", count = 2}
             global.troy_roboport.backer_name = "Troy"
@@ -241,9 +240,10 @@ Event.register(defines.events.on_entity_died, function(event)
 	if entity == global.sparta_roboport then
 		if force == game.forces["Sparta"] then
 			entity.destroy()
-			global.sparta_roboport.time_to_live = 1
+			game.print("Rookie from Sparta attempted to destroy their own roboport")
 			global.sparta_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = game.forces["Sparta"]}
-			global.sparta_roboport.minable = false
+            global.sparta_roboport.minable = false
+			global.sparta_roboport.energy=(10000000*10)
 			global.sparta_roboport.insert{name = "construction-robot", count = 2}
 			global.sparta_roboport.insert{name = "repair-pack", count = 2}
 			global.sparta_roboport.backer_name = "Sparta"
@@ -293,6 +293,7 @@ function set_spawns()
 		for k, object in pairs (s.find_entities{{ppnc.x-global.spawn_size/2,ppnc.y-global.spawn_size/2},{ppnc.x+global.spawn_size/2,ppnc.y+global.spawn_size/2}}) do object.destroy() end
 		global.troy_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = game.forces["Troy"]}
 		global.troy_roboport.minable = false
+		global.troy_roboport.energy=(10000000*10)
 		global.troy_roboport.insert{name = "construction-robot", count = 10}
 		global.troy_roboport.insert{name = "repair-pack", count = 20}
 		global.troy_roboport.backer_name = "Troy"
@@ -305,6 +306,7 @@ function set_spawns()
 		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size/2,opnc.y-global.spawn_size/2},{opnc.x+global.spawn_size/2,opnc.y+global.spawn_size/2}}) do object.destroy() end
 		global.sparta_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = game.forces["Sparta"]}
 		global.sparta_roboport.minable = false
+		global.sparta_roboport.energy=(10000000*10)
 		global.sparta_roboport.insert{name = "construction-robot", count = 10}
 		global.sparta_roboport.insert{name = "repair-pack", count = 20}
 		global.sparta_roboport.backer_name = "Sparta"
@@ -455,18 +457,19 @@ end
 
 --if no one is online on either team set roboports as not destructible (not working)
 function protection()
-	if (global.sparta_count == 0 or global.troy_count == 0) and (global.protection_tick <= game.tick) then
-		if global.sparta_roboport ~= nil then
+	global.protection_tick = global.protection_tick or 0
+	if ((#game.forces["Sparta"].connected_players == 0) or (#game.forces["Troy"].connected_players == 0)) and (global.protection_tick <= game.tick) then
+		if global.sparta_roboport and global.sparta_roboport.valid then
 			global.sparta_roboport.destructible = false
 		end
-		if global.sparta_roboport ~= nil then
+		if global.sparta_roboport and global.sparta_roboport.valid then
 			global.sparta_roboport.destructible = false
 		end
 	else
-		if global.troy_roboport ~= nil then
+		if global.troy_roboport and global.troy_roboport.valid then
 			global.troy_roboport.destructible = true
 		end
-		if global.sparta_roboport ~= nil then
+		if global.sparta_roboport and global.sparta_roboport.valid then
 			global.sparta_roboport.destructible = true
 		end
 	end

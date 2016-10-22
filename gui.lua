@@ -98,24 +98,6 @@ function update_count()
 	end
 end
 
-function round_start(event)
-    for _, p in pairs(game.players) do
-        if event == "count" then
-            local time = (50 - (game.tick / 60))
-            if (not p.gui.left.round_timer) then
-                local frame = p.gui.left.add{name="round_timer",type="flow",direction="horizontal"}
-                frame.add{type="label", name="time", caption= time}
-            else
-                p.gui.left.round_timer.time.caption = time
-            end
-        elseif event == "done" then
-            if p.gui.left.round_timer.time then
-                p.gui.left.round_timer.time.destroy()
-            end
-        end
-    end
-end
-
 function show_update_score()
 	local sparta_status = "Sparta("..global.kill_count_sparta..")"
 	local troy_status = "Troy("..global.kill_count_troy..")"
