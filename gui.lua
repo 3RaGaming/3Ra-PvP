@@ -78,6 +78,7 @@ function make_team_option(player)
 		frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r= 0/256, g=  255/256, b=  255/256}
 		frame.add{type = "button", caption = "Join Sparta", name = "sparta"}.style.font_color = global.sparta_color
        	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
+        player.print("Teams are now unlocked")
 	end
 end
 
@@ -95,6 +96,24 @@ function update_count()
 			p.gui.top.persons.troy.caption = troy_status
 		end
 	end
+end
+
+function round_start(event)
+    for _, p in pairs(game.players) do
+        if event == "count" then
+            local time = (50 - (game.tick / 60))
+            if (not p.gui.left.round_timer) then
+                local frame = p.gui.left.add{name="round_timer",type="flow",direction="horizontal"}
+                frame.add{type="label", name="time", caption= time}
+            else
+                p.gui.left.round_timer.time.caption = time
+            end
+        elseif event == "done" then
+            if p.gui.left.round_timer.time then
+                p.gui.left.round_timer.time.destroy()
+            end
+        end
+    end
 end
 
 function show_update_score()
@@ -131,7 +150,7 @@ function create_buttons(event)
 	end
 	if player.admin == true then
         if (not player.gui.left["spectate"]) then
-            local adminframe = player.gui.left.add{name = "spectate", type = "button", direction = "horizontal", caption = "Spectate"}
+            player.gui.left.add{name = "spectate", type = "button", direction = "horizontal", caption = "Spectate"}
         end
 	end
 end	

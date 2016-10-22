@@ -72,6 +72,7 @@ end
 
 	
 script.on_init(function()
+  make_lobby()
   -- randomly rotate bases to make it more interesting
   global.base_separation = math.random(global.base_min_separation,global.base_max_separation)/2
   global.base_rotation = math.random(0,math.pi*2)
@@ -86,9 +87,10 @@ script.on_init(function()
   global.sparta_team_position = { global.sparta_team_x, global.sparta_team_y}
   global.sparta_team_area = {{ global.sparta_team_x - d,  global.sparta_team_y - d},{ global.sparta_team_x + d,  global.sparta_team_y + d}}
   
-	init_attack_data()
-	make_lobby()
-	make_forces()
+  init_attack_data()
+  make_forces()
+  global.pre_start = true
+  game.speed = 1000
 end)
 
 --global variables for the message desplay
@@ -104,21 +106,41 @@ Event.register(defines.events.on_tick, function(event)
 	end
 	--runs every second
 	if(game.tick % 60 == 0) then
+		if game.tick <= (49 * 60) then
+			round_start("count")
+		elseif game.tick == (50 * 60) then
+			round_start("done")
+		end
 		protection()
+		if global.pre_start then
+			local s = game.surfaces["nauvis"]
+			local tt = game.forces.player.is_chunk_charted(s, {math.floor((global.troy_team_x - bd) / 32),  math.floor((global.troy_team_y - bd) / 32)})
+			local tb = game.forces.player.is_chunk_charted(s, {math.floor((global.troy_team_x + bd) / 32),  math.floor((global.troy_team_y + bd) / 32)})
+			local st = game.forces.player.is_chunk_charted(s, {math.floor((global.sparta_team_x - bd) / 32),  math.floor((global.sparta_team_y - bd) / 32)})
+			local sb = game.forces.player.is_chunk_charted(s, {math.floor((global.sparta_team_x + bd) / 32),  math.floor((global.sparta_team_y + bd) / 32)})
+			if tt and tb and st and sb then
+				game.speed = 1
+				set_spawns()
+				set_starting_areas()
+				research_technology()
+				for k, p in pairs (game.players) do
+					make_team_option(p)
+				end
+				global.pre_start = false
+			end
+		end
+			--chart the area so the game can coppy the recourses 
+			--game.forces["player"].chart(s,{{ global.troy_team_x - bd,  global.troy_team_y -bd}, { global.troy_team_x + bd,  global.troy_team_y + bd}} )
+			--game.forces["player"].chart(s,{{ global.sparta_team_x - bd,  global.sparta_team_y -bd}, { global.sparta_team_x + bd,  global.sparta_team_y + bd}} )
 	end	
 	-- Runs every 30 seconds
 	if(game.tick % 1800 == 0) then
 		if not game.forces["Spectators"] then game.create_force("Spectators") end
 		game.forces.Spectators.chart_all()
-	end	
-	if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
-		set_spawns()
-		set_starting_areas()
-		research_technology()
-		for k, p in pairs (game.players) do
-			make_team_option(p)
-		end
 	end
+	--if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
+
+	--end
 	local current_time = game.tick / 60 - global.timer_value
 	local message_display = "test"
 	if current_time >= global.timer_wait then
@@ -162,7 +184,7 @@ Event.register(defines.events.on_player_created, function(event)
 	player.print({"msg-intro1"})
 	player.print({"msg-intro2"})
 	
-	if game.tick > 50*60 then    ------------*************vvvvvvthese have to match**********----------
+	if not global.pre_start then    ------------*************vvvvvvthese have to match**********----------
 		make_team_option(player)
 	else 
 		player.print({"msg-intro3"})
@@ -290,11 +312,7 @@ function set_spawns()
 		o_turret.minable = false
 		o_turret.destructible = false
 		o_turret.insert{name = "piercing-rounds-magazine", count = 50}
-		
-		
-		for k, p in pairs (game.players) do
-			p.print("Teams are now unlocked")
-		end
+
 		for k, entity in pairs(s.find_entities_filtered({area={{ppnc.x - bd, ppnc.y -bd}, {ppnc.x + bd, ppnc.y + bd}}, force= "enemy"})) do
 			entity.destroy()
 		end
