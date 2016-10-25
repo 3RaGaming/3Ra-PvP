@@ -35,9 +35,9 @@ d = 32*3
 bd = d*3
 
 --global team colors
-global.sparta_color = {r= 255/256, g=  128/256, b=  0/256}
-global.troy_color = {r= 0/256, g=  255/256, b=  0/256}
-black = {r= 0/256, g=  0/256, b=  0/256}
+global.sparta_color = {r= 255/255, g=  128/255, b=  0/255}
+global.troy_color = {r= 0/255, g=  255/255, b=  0/255}
+black = {r= 0/255, g=  0/255, b=  0/255}
 
 normal_attack_sent_event = script.generate_event_name()
 landing_attack_sent_event = script.generate_event_name()
