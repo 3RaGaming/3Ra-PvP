@@ -455,15 +455,15 @@ function show_health()
     end 
 end	
 
---if no one is online on either team set roboports as not destructible (not working)
+--if no one is online on either team set roboports as not destructible
 function protection()
 	global.protection_tick = global.protection_tick or 0
 	if ((#game.forces["Sparta"].connected_players == 0) or (#game.forces["Troy"].connected_players == 0)) and (global.protection_tick <= game.tick) then
 		if global.sparta_roboport and global.sparta_roboport.valid then
 			global.sparta_roboport.destructible = false
 		end
-		if global.sparta_roboport and global.sparta_roboport.valid then
-			global.sparta_roboport.destructible = false
+		if global.troy_roboport and global.troy_roboport.valid then
+			global.troy_roboport.destructible = false
 		end
 	else
 		if global.troy_roboport and global.troy_roboport.valid then

@@ -8,7 +8,7 @@ function troy_destroy_o()
 		p.print("Spartas Roboport has been destroyed")
 		p.print("Troy was Awarded 40 Points")	
 	end
-	script.on_event(defines.events.on_tick, kill_sparta)
+	Event.register(defines.events.on_tick, kill_sparta)
 	global.ending_tick = game.tick + 300
 end
 
@@ -22,7 +22,7 @@ function sparta_destroy_p()
 		p.print("Sparta was Awarded 40 Points")
 	end
 
-	script.on_event(defines.events.on_tick, kill_troy)
+	Event.register(defines.events.on_tick, kill_troy)
 	global.ending_tick = game.tick + 300
 end
 
@@ -35,7 +35,8 @@ function kill_sparta()
 		s.create_entity{position = {drx + math.random(-2,2),dry + math.random(-2,2)}, name = "medium-explosion"}    
 	end
 	if game.tick == global.ending_tick then 
-		s.create_entity{position = {drx,dry}, name = "big-explosion"} 
+		s.create_entity{position = {drx,dry}, name = "big-explosion"}
+		Event.remove(defines.events.on_tick, kill_sparta)
 	end
 end
 
@@ -48,7 +49,8 @@ function kill_troy()
 		s.create_entity{position = {drx + math.random(-2,2),dry + math.random(-2,2)}, name = "medium-explosion"}    
 	end
 	if game.tick == global.ending_tick then 
-		s.create_entity{position = {drx,dry}, name = "big-explosion"} 
+		s.create_entity{position = {drx,dry}, name = "big-explosion"}
+		Event.remove(defines.events.on_tick, kill_troy)
 	end
 end
 
