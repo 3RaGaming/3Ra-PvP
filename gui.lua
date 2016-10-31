@@ -49,8 +49,9 @@ Event.register(defines.events.on_gui_click, function(event)
 			join_a_team(event, "Troy", "Sparta")
 		elseif (event.element.name == "spectator") then
 			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
-            player.character.destroy()
+			if player.character then player.character.destroy() end
 			if player.admin then
+				if global.player_spectator_character[index] then global.player_spectator_character[index].destroy() end
 				-- Creating an Admins force so that it the admin.lua code from util's has a force to send the admin back to
 				if not game.forces["Admins"] then
 					game.create_force("Admins")
