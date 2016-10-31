@@ -1,28 +1,28 @@
 function player_died(event)
   player = event.player_index
   if game.players[player].name ~= nil then
-	print("[PUPDATE] | "..game.players[player].name.." | died |"..game.players[player].force.name)
+    print("[PUPDATE] | "..game.players[player].name.." | died |"..game.players[player].force.name)
   end
 end
 
 function player_respawned(event)
   player = event.player_index
   if game.players[player].name ~= nil then
-	print("[PUPDATE]| "..game.players[player].name.." | respawn |"..game.players[player].force.name)
+    print("[PUPDATE]| "..game.players[player].name.." | respawn |"..game.players[player].force.name)
   end
 end
 
 function player_joined(event)
   player = event.player_index
   if game.players[player].name ~= nil then
-	print("[PUPDATE]| "..game.players[player].name.." | join |"..game.players[player].force.name)
+    print("[PUPDATE]| "..game.players[player].name.." | join |"..game.players[player].force.name)
   end
 end
 
 function player_left(event)
   player = event.player_index
   if game.players[player].name ~= nil then
-	print("[PUPDATE]| "..game.players[player].name.." | leave |"..game.players[player].force.name)
+    print("[PUPDATE]| "..game.players[player].name.." | leave |"..game.players[player].force.name)
   end
 end
 
