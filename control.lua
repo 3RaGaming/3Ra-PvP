@@ -227,12 +227,12 @@ Event.register(defines.events.on_entity_died, function(event)
 		if force == game.forces["Troy"] then
 			entity.destroy()
 			game.print("Rookie from Troy attempted to destroy their own roboport")
-            global.troy_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = game.forces["Troy"]}
-            global.troy_roboport.minable = false
+			global.troy_roboport = s.create_entity{name = "roboport", position = {ppnc.x,ppnc.y-40}, force = game.forces["Troy"]}
+			global.troy_roboport.minable = false
 			global.troy_roboport.energy=(10000000*10)
-            global.troy_roboport.insert{name = "construction-robot", count = 2}
-            global.troy_roboport.insert{name = "repair-pack", count = 2}
-            global.troy_roboport.backer_name = "Troy"
+			global.troy_roboport.insert{name = "construction-robot", count = 2}
+			global.troy_roboport.insert{name = "repair-pack", count = 2}
+			global.troy_roboport.backer_name = "Troy"
 		else
 			global.drbp = entity.position sparta_destroy_p()
 		end
@@ -242,7 +242,7 @@ Event.register(defines.events.on_entity_died, function(event)
 			entity.destroy()
 			game.print("Rookie from Sparta attempted to destroy their own roboport")
 			global.sparta_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = game.forces["Sparta"]}
-            global.sparta_roboport.minable = false
+			global.sparta_roboport.minable = false
 			global.sparta_roboport.energy=(10000000*10)
 			global.sparta_roboport.insert{name = "construction-robot", count = 2}
 			global.sparta_roboport.insert{name = "repair-pack", count = 2}
@@ -301,7 +301,7 @@ function set_spawns()
 		p_turret.minable = false
 		p_turret.destructible = false
 		p_turret.insert{name = "piercing-rounds-magazine", count = 50}
-    
+	
 		sparta.set_spawn_position({opnc.x,opnc.y}, s)
 		for k, object in pairs (s.find_entities{{opnc.x-global.spawn_size/2,opnc.y-global.spawn_size/2},{opnc.x+global.spawn_size/2,opnc.y+global.spawn_size/2}}) do object.destroy() end
 		global.sparta_roboport = s.create_entity{name = "roboport", position = {opnc.x,opnc.y-40}, force = game.forces["Sparta"]}
@@ -321,7 +321,7 @@ function set_spawns()
 		for k, entity in pairs(s.find_entities_filtered({area={{opnc.x - bd, opnc.y -bd}, {opnc.x + bd, opnc.y + bd}}, force= "enemy"})) do
 			entity.destroy()
 		end
-    else
+	else
 		for k, p in pairs (game.players) do 
 			p.print("Map unsutitable, please restart")
 		end
@@ -332,30 +332,30 @@ function set_starting_areas()
 	local s = game.surfaces.nauvis
   
   for x=-global.spawn_size,global.spawn_size,1 do
-    for y=-global.spawn_size,global.spawn_size,1 do
-      local tile = s.get_tile(global.troy_team_x+x,global.troy_team_y+y)
-      if (tile.name == "water" or tile.name == "deepwater") then
-        s.set_tiles{{name = "grass", position = { global.troy_team_x+x,global.troy_team_y+y}}}  
-      end
-      tile = s.get_tile(global.sparta_team_x+x,global.sparta_team_y+y)
-      if (tile.name == "water" or tile.name == "deepwater") then
-        s.set_tiles{{name = "grass", position = { global.sparta_team_x+x,global.sparta_team_y+y}}} 
-      end
-    end
+	for y=-global.spawn_size,global.spawn_size,1 do
+	  local tile = s.get_tile(global.troy_team_x+x,global.troy_team_y+y)
+	  if (tile.name == "water" or tile.name == "deepwater") then
+		s.set_tiles{{name = "grass", position = { global.troy_team_x+x,global.troy_team_y+y}}}  
+	  end
+	  tile = s.get_tile(global.sparta_team_x+x,global.sparta_team_y+y)
+	  if (tile.name == "water" or tile.name == "deepwater") then
+		s.set_tiles{{name = "grass", position = { global.sparta_team_x+x,global.sparta_team_y+y}}} 
+	  end
+	end
   end
   
 	s.set_tiles{
-    		{name = "water", position ={ global.troy_team_x + 16,  global.troy_team_y +16}},
-    		{name = "water", position ={ global.troy_team_x + 17,  global.troy_team_y +16}},
-    		{name = "water", position ={ global.troy_team_x + 16,  global.troy_team_y +17}},
-    		{name = "water", position ={ global.troy_team_x + 17,  global.troy_team_y +17}}
+			{name = "water", position ={ global.troy_team_x + 16,  global.troy_team_y +16}},
+			{name = "water", position ={ global.troy_team_x + 17,  global.troy_team_y +16}},
+			{name = "water", position ={ global.troy_team_x + 16,  global.troy_team_y +17}},
+			{name = "water", position ={ global.troy_team_x + 17,  global.troy_team_y +17}}
 	}
-        
+		
 	s.set_tiles{
-    		{name = "water", position = { global.sparta_team_x + 16, global.sparta_team_y +16}},
-    		{name = "water", position = { global.sparta_team_x + 17, global.sparta_team_y +16}},
-    		{name = "water", position = { global.sparta_team_x + 16, global.sparta_team_y +17}},
-    		{name = "water", position = { global.sparta_team_x + 17, global.sparta_team_y +17}}
+			{name = "water", position = { global.sparta_team_x + 16, global.sparta_team_y +16}},
+			{name = "water", position = { global.sparta_team_x + 17, global.sparta_team_y +16}},
+			{name = "water", position = { global.sparta_team_x + 16, global.sparta_team_y +17}},
+			{name = "water", position = { global.sparta_team_x + 17, global.sparta_team_y +17}}
 	}
 
 	for k, pr in pairs (s.find_entities_filtered{area = {{ global.troy_team_x-global.spawn_size,  global.troy_team_y-global.spawn_size},{ global.troy_team_x+global.spawn_size,  global.troy_team_y+global.spawn_size}}, type= "resource"}) do
@@ -372,17 +372,17 @@ function set_starting_areas()
 		local prx = prx +  global.troy_team_x
 		local pry = pry +  global.troy_team_y
 		local tile = s.get_tile(prx,pry).name
-    
+	
 		if tile ~= "water" and tile ~= "deepwater" then
 			s.create_entity{name = r.name, position = {prx,pry},force = r.force, amount = r.amount}
 		end
-      
+	  
 		local nrx = r.position.x
 		local nry = r.position.y
 		local nrx = nrx +  global.sparta_team_x
 		local nry = nry +  global.sparta_team_y
 		local tile = s.get_tile(nrx,nry).name
-      
+	  
 		if tile ~= "water" and tile ~= "deepwater" then 
 			s.create_entity{name = r.name, position = {nrx,nry}, force = r.force, amount = r.amount}
 		end
@@ -394,7 +394,7 @@ function join_a_team(event, joining, opposing)
 	local s = game.surfaces.nauvis
 	local p = game.players[event.player_index]
 	if p.character == nil then
-        if p.connected then
+		if p.connected then
 			if p.admin and global.player_spectator_state[p.index] then
 				global.player_spectator_force[p.index] = game.forces[joining]
 				force_spectators(p.index)
@@ -402,14 +402,14 @@ function join_a_team(event, joining, opposing)
 				local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = joining}
 				p.set_controller{type = defines.controllers.character, character = character}
 			end
-    	end
+		end
 	end
 	p.teleport(game.forces[joining].get_spawn_position(s), game.surfaces.nauvis)
 	p.force = game.forces[joining]
 	p.gui.left.choose_team.destroy()
 	starting_inventory(event)
 	update_count()
-	p.print("Destroy the "..opposing.." Roboport for 40 extra points")      
+	p.print("Destroy the "..opposing.." Roboport for 40 extra points")	  
 	game.print(p.name..", of "..joining..", has entered the arena")
 end
 
@@ -425,7 +425,7 @@ end
 
 -- shows player health as a text float.
 function show_health()
-    for k, player in pairs(game.players) do
+	for k, player in pairs(game.players) do
 		if player.connected then
 			if player.character then
 				if player.character.health == nil then return end
@@ -451,8 +451,8 @@ function show_health()
 					end	
 				end
 			end
-        end
-    end 
+		end
+	end 
 end	
 
 --if no one is online on either team set roboports as not destructible

@@ -32,7 +32,7 @@ function kill_sparta()
 	local drx = global.drbp.x
 	local dry = global.drbp.y
 	if game.tick < global.ending_tick and game.tick % 20 == 0 then
-		s.create_entity{position = {drx + math.random(-2,2),dry + math.random(-2,2)}, name = "medium-explosion"}    
+		s.create_entity{position = {drx + math.random(-2,2),dry + math.random(-2,2)}, name = "medium-explosion"}	
 	end
 	if game.tick == global.ending_tick then 
 		s.create_entity{position = {drx,dry}, name = "big-explosion"}
@@ -46,7 +46,7 @@ function kill_troy()
 	local drx = global.drbp.x
 	local dry = global.drbp.y
 	if game.tick < global.ending_tick and game.tick % 20 == 0 then
-		s.create_entity{position = {drx + math.random(-2,2),dry + math.random(-2,2)}, name = "medium-explosion"}    
+		s.create_entity{position = {drx + math.random(-2,2),dry + math.random(-2,2)}, name = "medium-explosion"}	
 	end
 	if game.tick == global.ending_tick then 
 		s.create_entity{position = {drx,dry}, name = "big-explosion"}
@@ -56,14 +56,14 @@ end
 
 --check on tick, to see if anyone has won.
 function win()
-    if global.kill_count_troy >= 100 then
-        global.end_screen = game.tick + 180
-        Event.register(defines.events.on_tick, troy_win)
-    end
-    if global.kill_count_sparta >= 100 then
-        global.end_screen = game.tick + 180
-        Event.register(defines.events.on_tick, sparta_win)
-    end
+	if global.kill_count_troy >= 100 then
+		global.end_screen = game.tick + 180
+		Event.register(defines.events.on_tick, troy_win)
+	end
+	if global.kill_count_sparta >= 100 then
+		global.end_screen = game.tick + 180
+		Event.register(defines.events.on_tick, sparta_win)
+	end
 end
 
 function sparta_win()
@@ -77,7 +77,7 @@ function sparta_win()
 			end
 		end
 	end
-    return
+	return
 end
 
 function troy_win()
@@ -91,7 +91,7 @@ function troy_win()
 			end
 		end
 	end
-    return
+	return
 end
 
 --gui with a message, event on win.

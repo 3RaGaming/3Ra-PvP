@@ -2,3 +2,5 @@
 	path = locale/utils
 	url = https://github.com/3RaGaming/utils
 	branch = master
+
+	ignore = dirty

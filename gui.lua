@@ -2,8 +2,8 @@
 Event.register(defines.events.on_gui_click, function(event)
 	local s = game.surfaces.nauvis
 	local player = game.players[event.player_index]
-    local index = event.player_index
-    local element = event.element.name
+	local index = event.player_index
+	local element = event.element.name
 		
 	-- Turns on/off Flashlight
 
@@ -23,7 +23,7 @@ Event.register(defines.events.on_gui_click, function(event)
 	if (event.element.name == "crouch_button") then
 		if player.character == nil then return end
 		global.player_crouch_state = global.player_crouch_state or {}
-        global.player_crouch_color = global.player_crouch_color or {}
+		global.player_crouch_color = global.player_crouch_color or {}
 		if global.player_crouch_state == true then
 			global.player_crouch_state = false
 			player.character_running_speed_modifier = 0
@@ -31,7 +31,7 @@ Event.register(defines.events.on_gui_click, function(event)
 		else 
 			global.player_crouch_state = true
 			player.character_running_speed_modifier = -0.6
-            global.player_crouch_color = player.color
+			global.player_crouch_color = player.color
 			player.color = black				
 		end
 	end
@@ -39,7 +39,7 @@ Event.register(defines.events.on_gui_click, function(event)
 		if (event.element.name == "end_message_button") then
 			player.gui.center.end_message.destroy()
 		end
-    end
+	end
 	if player.gui.left.choose_team ~= nil then
 		if (event.element.name == "sparta") then
 			if global.sparta_count > global.troy_count then player.print("Too many Players in Sparta, try Troy") return end
@@ -58,18 +58,18 @@ Event.register(defines.events.on_gui_click, function(event)
 			player.gui.left.choose_team.spectator.destroy()
 		end
 	end	
-    if player.gui.left.spectate ~= nil then
-        if element ~= nil then
-            if element == "spectate" then
-                if player.admin then
-                    force_spectators(index)
-                else
-                    player.print("You are no longer an admin")
-                    player.gui.left.spectate.destroy()
-                end
-            end
-        end
-    end
+	if player.gui.left.spectate ~= nil then
+		if element ~= nil then
+			if element == "spectate" then
+				if player.admin then
+					force_spectators(index)
+				else
+					player.print("You are no longer an admin")
+					player.gui.left.spectate.destroy()
+				end
+			end
+		end
+	end
 end)
 
 function make_team_option(player)
@@ -77,15 +77,15 @@ function make_team_option(player)
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
 		frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r= 0/256, g=  255/256, b=  255/256}
 		frame.add{type = "button", caption = "Join Sparta", name = "sparta"}.style.font_color = global.sparta_color
-       	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
-        player.print("Teams are now unlocked")
+	   	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
+		player.print("Teams are now unlocked")
 	end
 end
 
 -- updates the player count gui for total players joined each force, and players online for each force.
 function update_count()
 	local sparta_status = "Sparta("..#game.forces["Sparta"].connected_players..")"
-    local troy_status = "Troy("..#game.forces["Troy"].connected_players..")"
+	local troy_status = "Troy("..#game.forces["Troy"].connected_players..")"
 	for _, p in pairs(game.connected_players) do
 		if p.gui.top.persons == nil then
 			local frame = p.gui.top.add{name = "persons", type = "frame", direction = "horizontal", caption="Players Online"}
@@ -123,7 +123,7 @@ end
 --using this to order the gui'
 function create_buttons(event)
 	local player = game.players[event.player_index]
-    if (not player.gui.top["flashlight_button"]) then
+	if (not player.gui.top["flashlight_button"]) then
 		player.gui.top.add{type="button", name="flashlight_button", caption="Flashlight"}
 	end
 
@@ -131,8 +131,8 @@ function create_buttons(event)
 		local frame = player.gui.top.add{name = "crouch_button", type = "button", direction = "horizontal", caption = "Crouch"}
 	end
 	if player.admin == true then
-        if (not player.gui.left["spectate"]) then
-            player.gui.left.add{name = "spectate", type = "button", direction = "horizontal", caption = "Spectate"}
-        end
+		if (not player.gui.left["spectate"]) then
+			player.gui.left.add{name = "spectate", type = "button", direction = "horizontal", caption = "Spectate"}
+		end
 	end
 end	

@@ -211,7 +211,7 @@ function on_player_died(event)
 								end
 							end
 						end --[[ end for #toolbar ]]--
-							     
+								 
 					end
 				end
 			end
