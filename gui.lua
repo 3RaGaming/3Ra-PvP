@@ -3,10 +3,11 @@ Event.register(defines.events.on_gui_click, function(event)
 	local s = game.surfaces.nauvis
 	local player = game.players[event.player_index]
     local index = event.player_index
-    local element = event.element.name
-		
+	
+	if not event.element.valid then
+		return
+	end
 	-- Turns on/off Flashlight
-
 	if (event.element.name == "flashlight_button") then
 		if player.character == nil then return end
 			global.player_flashlight_state = global.player_flashlight_state or {}
@@ -19,7 +20,6 @@ Event.register(defines.events.on_gui_click, function(event)
 			end
 			return
 	end
-	
 	if (event.element.name == "crouch_button") then
 		if player.character == nil then return end
 		global.player_crouch_state = global.player_crouch_state or {}
@@ -44,38 +44,38 @@ Event.register(defines.events.on_gui_click, function(event)
 		if (event.element.name == "sparta") then
 			if global.sparta_count > global.troy_count then player.print("Too many Players in Sparta, try Troy") return end
 			join_a_team(event, "Sparta", "Troy")
-		end
-	end
-	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "troy") then
+		elseif (event.element.name == "troy") then
 			if global.troy_count > global.sparta_count then player.print("Too many Players in Troy, try Sparta") return end
 			join_a_team(event, "Troy", "Sparta")
-		end
-	end
-	if player.gui.left.choose_team ~= nil then
-		if (event.element.name == "spectator") then
-			force_spectators(index)
+		elseif (event.element.name == "spectator") then
+			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
+			if player.character then player.character.destroy() end
+			if player.admin then
+				if global.player_spectator_character[index] then global.player_spectator_character[index].destroy() end
+				-- Creating an Admins force so that it the admin.lua code from util's has a force to send the admin back to
+				if not game.forces["Admins"] then
+					game.create_force("Admins")
+					for k, f in pairs(game.forces) do
+						f.set_cease_fire(game.forces["Admins"], true)
+					end
+				end
+				global.player_spectator_force = global.player_spectator_force or {}
+				global.player_spectator_force[index] = game.forces["Admins"]
+				force_spectators(index)
+			else
+				player.set_controller{type = defines.controllers.ghost}
+				player.print("You are now a spectator. You are unable to interact with the game until you join a team.")
+			end
 			player.gui.left.choose_team.spectator.destroy()
 		end
 	end	
-    if player.gui.left.spectate ~= nil then
-        if element ~= nil then
-            if element == "spectate" then
-                if player.admin then
-                    force_spectators(index)
-                else
-                    player.print("You are no longer an admin")
-                    player.gui.left.spectate.destroy()
-                end
-            end
-        end
-    end
 end)
 
 function make_team_option(player)
 	if player.gui.left.choose_team == nil then
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
 		frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r= 0/256, g=  255/256, b=  255/256}
+		if player.admin then frame.spectator.caption = "Join Admins" end
 		frame.add{type = "button", caption = "Join Sparta", name = "sparta"}.style.font_color = global.sparta_color
        	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
         player.print("Teams are now unlocked")
@@ -129,10 +129,5 @@ function create_buttons(event)
 
 	if (not player.gui.top["crouch_button"]) then
 		local frame = player.gui.top.add{name = "crouch_button", type = "button", direction = "horizontal", caption = "Crouch"}
-	end
-	if player.admin == true then
-        if (not player.gui.left["spectate"]) then
-            player.gui.left.add{name = "spectate", type = "button", direction = "horizontal", caption = "Spectate"}
-        end
 	end
 end	

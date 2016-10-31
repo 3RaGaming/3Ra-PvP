@@ -5,12 +5,11 @@ if not scenario.config then scenario.config = {} end
 --config and event must be called first.
 --require "config"
 require "locale/utils/event"
---require "locale/utils/admin"
+require "locale/utils/admin"
 require "locale/utils/undecorator"
 require "server"
 require "technologies"
 require "win"
-require "spectators"
 require "gravestone"
 require "gui"
 
@@ -38,6 +37,54 @@ bd = d*3
 global.sparta_color = {r= 255/255, g=  128/255, b=  0/255}
 global.troy_color = {r= 0/255, g=  255/255, b=  0/255}
 black = {r= 0/255, g=  0/255, b=  0/255}
+
+-- admin restriction controls
+global.restrict_admin_character = true
+remote.add_interface("admin_control",
+{
+	restrict_admins = function()
+		if global.restrict_admin_character then
+			game.player.print("Admins are already restricted")
+		else
+			global.restrict_admin_character = true
+			for k,p in pairs(game.players) do
+				if p.admin then
+					if p.gui.left.admin_pane.character ~= nil then
+						p.gui.left.admin_pane.character.destroy()
+					elseif p.gui.left.admin_pane.character_panel ~= nil then
+						p.gui.left.admin_pane.character_panel.destroy()
+					end
+					if p.character then
+						global.player_character_stats[p.index] = {
+							item_loot_pickup = false,
+							build_itemdrop_reach_resourcereach_distance = false,
+							crafting_speed = false,
+							mining_speed = false,
+							running_speed = 0
+						}
+						update_character(p.index)
+					end
+					p.print("Admins are now restricted from adjusting their characters. Your character is now reset to its default state.")
+				end
+			end
+		end
+	end,
+	unrestrict_admins = function()
+		if not global.restrict_admin_character then
+			game.player.print("Admins are already unrestricted")
+		else
+			global.restrict_admin_character = false
+			for k,p in pairs(game.players) do
+				if p.admin then
+					if p.gui.left.admin_pane.character == nil then
+						p.gui.left.admin_pane.add{name = "character", type = "button", caption = "Character"}
+					end
+					p.print("Admins have been unrestricted from adjusting their characters. Please do not abuse this if you are on a team, keep PvP fair.")
+				end
+			end
+		end
+	end
+})
 
 normal_attack_sent_event = script.generate_event_name()
 landing_attack_sent_event = script.generate_event_name()
@@ -132,6 +179,13 @@ Event.register(defines.events.on_tick, function(event)
 	if(game.tick % 1800 == 0) then
 		if not game.forces["Spectators"] then game.create_force("Spectators") end
 		game.forces.Spectators.chart_all()
+		if not game.forces["Admins"] then
+			game.create_force("Admins")
+			for k, f in pairs(game.forces) do
+				f.set_cease_fire(game.forces["Admins"], true)
+			end
+		end
+		game.forces.Admins.chart_all()
 	end
 	--if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 
@@ -155,11 +209,6 @@ end)
 
 Event.register(defines.events.on_player_joined_game, function(event)
 	local p = game.players[event.player_index]
-	if p.admin == true then
-		if game.tick > 60 then
-			game.print("Hail Admin "..p.name)
-		end
-	end
 	create_buttons(event)
 	update_count()
 	show_update_score()
@@ -389,7 +438,7 @@ function set_starting_areas()
 	end
 end
 
--- when a player clicks the gui button to join sparta.
+-- when a player clicks a Join Team button
 function join_a_team(event, joining, opposing)
 	local s = game.surfaces.nauvis
 	local p = game.players[event.player_index]
@@ -403,6 +452,19 @@ function join_a_team(event, joining, opposing)
 				p.set_controller{type = defines.controllers.character, character = character}
 			end
     	end
+	end
+	if p.admin then
+		if global.restrict_admin_character then
+			p.print("Admin restrictions on characters are enabled. The ability to modify your character stats has been removed.")
+			if p.gui.left.admin_pane.character then
+				p.gui.left.admin_pane.character.destroy()
+			end
+			if p.gui.left.admin_pane.character_panel then
+				p.gui.left.admin_pane.character_panel.destroy()
+			end
+		else
+			p.print("Admin restrictions on characters are not enabled. Please do not use these abilities to cheat, keep the PvP fair.")
+		end
 	end
 	p.teleport(game.forces[joining].get_spawn_position(s), game.surfaces.nauvis)
 	p.force = game.forces[joining]
