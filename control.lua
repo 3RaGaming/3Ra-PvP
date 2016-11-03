@@ -446,7 +446,7 @@ function join_a_team(event, joining, opposing)
         if p.connected then
 			if p.admin and global.player_spectator_state[p.index] then
 				global.player_spectator_force[p.index] = game.forces[joining]
-				force_spectators(p.index)
+				force_spectators(p.index, false)
 			else
 				local character = p.surface.create_entity{name = "player", position = p.surface.find_non_colliding_position("player", p.force.get_spawn_position(p.surface), 10, 2), force = joining}
 				p.set_controller{type = defines.controllers.character, character = character}

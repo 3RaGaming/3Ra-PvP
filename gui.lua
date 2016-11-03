@@ -61,7 +61,7 @@ Event.register(defines.events.on_gui_click, function(event)
 				end
 				global.player_spectator_force = global.player_spectator_force or {}
 				global.player_spectator_force[index] = game.forces["Admins"]
-				force_spectators(index)
+				force_spectators(index, nil)
 			else
 				player.set_controller{type = defines.controllers.ghost}
 				player.print("You are now a spectator. You are unable to interact with the game until you join a team.")
