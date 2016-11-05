@@ -57,10 +57,12 @@ end
 --check on tick, to see if anyone has won.
 function win()
     if global.kill_count_troy >= 100 then
+		for _, p in pairs (game.connected_players) do p.surface.create_entity{position=p.position, name="big-explosion"} end
         global.end_screen = game.tick + 180
         Event.register(defines.events.on_tick, troy_win)
     end
     if global.kill_count_sparta >= 100 then
+		for _, p in pairs (game.connected_players) do p.surface.create_entity{position=p.position, name="big-explosion"} end
         global.end_screen = game.tick + 180
         Event.register(defines.events.on_tick, sparta_win)
     end
