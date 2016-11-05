@@ -18,8 +18,8 @@ global.kill_count_troy = 0
 global.kill_count_sparta = 0
 
 -- make sure base is at least 1000x1000
-global.base_min_separation = 700
-global.base_max_separation = 800
+global.base_min_separation = 1500
+global.base_max_separation = 2000
 
 global.base_separation = 0
 global.base_rotation = 0

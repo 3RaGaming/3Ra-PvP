@@ -51,6 +51,7 @@ Event.register(defines.events.on_gui_click, function(event)
 			player.teleport(game.forces["Spectators"].get_spawn_position(game.surfaces.nauvis), game.surfaces.nauvis)
 			if player.character then player.character.destroy() end
 			if player.admin then
+			global.player_spectator_character = global.player_spectator_character or {}
 				if (global.player_spectator_character[index] and global.player_spectator_character[index].valid) then global.player_spectator_character[index].destroy() end
 				-- Creating an Admins force so that it the admin.lua code from util's has a force to send the admin back to
 				if not game.forces["Admins"] then
