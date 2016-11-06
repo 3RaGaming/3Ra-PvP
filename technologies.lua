@@ -1,13 +1,13 @@
 
 function research_technology()
-	for k, force in pairs (game.forces) do
-	  for k, technology in pairs (force.technologies) do 
-		technology.researched = false
-			if technology.upgrade then
-			technology.researched = false
-			end
-		end
-	end	
+	--for k, force in pairs (game.forces) do
+	--  for k, technology in pairs (force.technologies) do 
+	--	technology.researched = false
+	--		if technology.upgrade then
+	--		technology.researched = false
+	--		end
+	--	end
+	--end	
 end
 
 script.on_event(defines.events.on_research_finished, function (event)
