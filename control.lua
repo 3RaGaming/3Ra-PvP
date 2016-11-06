@@ -179,13 +179,6 @@ Event.register(defines.events.on_tick, function(event)
 	if(game.tick % 1800 == 0) then
 		if not game.forces["Spectators"] then game.create_force("Spectators") end
 		game.forces.Spectators.chart_all()
-		if not game.forces["Admins"] then
-			game.create_force("Admins")
-			for k, f in pairs(game.forces) do
-				f.set_cease_fire(game.forces["Admins"], true)
-			end
-		end
-		game.forces.Admins.chart_all()
 	end
 	--if game.tick == 50 * 60 then  ----------*************^^^^these have to match**********----------
 
