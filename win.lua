@@ -72,10 +72,10 @@ function sparta_win()
 	if game.tick == global.end_screen then 
 		for k, player in pairs (game.connected_players) do
 			if player.force.name == "Sparta" then
-				showdialog("You win :D", "Sparta has defeated the Troy. Well done!")
+				showdialog(player, "You win :D", "Sparta has defeated Troy. Well done!")
 			end
 			if player.force.name == "Troy" then
-				showdialog("You lost :(", "Troy was defeated by the Sparta. Better luck next time.")
+				showdialog(player, "You lost :(", "Troy was defeated by Sparta. Better luck next time.")
 			end
 		end
 	end
@@ -86,10 +86,10 @@ function troy_win()
 	if game.tick == global.end_screen then
 		for k, player in pairs (game.connected_players) do
 			if player.force.name == "Troy" then
-				showdialog("You win :D", "Troy has defeated the Sparta. Well done!")
+				showdialog(player, "You win :D", "Troy has defeated Sparta. Well done!")
 			end
 			if player.force.name == "Sparta" then
-				showdialog("You lost :(", "Sparta was defeated by the Troy. Better luck next time.")
+				showdialog(player, "You lost :(", "Sparta was defeated by Troy. Better luck next time.")
 			end
 		end
 	end
@@ -97,7 +97,7 @@ function troy_win()
 end
 
 --gui with a message, event on win.
-function showdialog(title, message)
+function showdialog(player, title, message)
 	if player.gui.center.end_message == nil then
 		local frame = player.gui.center.add{type="frame", name="end_message", caption=title, direction="vertical"}
 		frame.add{type="label", caption=message}
