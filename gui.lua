@@ -75,7 +75,9 @@ end)
 function make_team_option(player)
 	if player.gui.left.choose_team == nil then
 		local frame = player.gui.left.add{name = "choose_team", type = "frame", direction = "vertical", caption="Choose your Team"}
-		frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r= 0/256, g=  255/256, b=  255/256}
+			if player.admin then
+				frame.add{type = "button", caption = "Join Spectators", name = "spectator"}.style.font_color = {r= 0/256, g=  255/256, b=  255/256}
+			end
 		if player.admin then frame.spectator.caption = "Join Admins" end
 		frame.add{type = "button", caption = "Join Sparta", name = "sparta"}.style.font_color = global.sparta_color
        	frame.add{type = "button", caption = "Join Troy", name = "troy"}.style.font_color = global.troy_color
